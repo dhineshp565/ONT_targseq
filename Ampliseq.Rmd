@@ -1,0 +1,69 @@
+---
+title: "Bovreproseq Results Report"
+author: "Bovreproseq primer version #3 - Diagnostic Samples"
+date: "`r Sys.Date()`"
+output: html_document
+params:
+  csv: ""
+  krona: ""
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+library(ggplot2)
+library(htmltools)
+```
+
+
+<br>
+```{css, echo=FALSE}
+.table caption {
+    color: darkblue;
+    font-weight: bold;
+}
+```
+
+### Click dropdown to select sample {.tabset .tabset-dropdown}
+```{r, results='asis',echo=FALSE}
+
+samplelist <- read.csv(params$csv,header=FALSE,sep = ',')[-1,]
+sampleid <- samplelist[,c(1)]
+
+for (i in sampleid){
+  cat("####", i, "\n")
+  #use mappedreads.txt and display column 1 and 3
+  mapped_reads <- (paste(i,"_mappedreads.txt",sep=""))
+  df <- read.csv(mapped_reads,header = TRUE,sep=" ")
+  mapped_stat<-df[,c(1,3)]
+  colnames (mapped_stat) <- c("AMPLICON","MAPPED_READS")
+  print(knitr::kable(mapped_stat,align="ll",caption = "NO. OF MAPPED READS. Generated using minimap2 and samtools"))
+  cat('\n\n<!-- -->\n\n')
+  #fig <- plot_ly(mapped_stat, x = "AMPLICON", y = "MAPPED_READS", type = 'bar', name = 'Mapped reads')
+  #print(fig)
+  #plot=ggplot(mapped_stat,aes(x = !!rlang::sym(colnames(mapped_stat)[1]),y = !!rlang::sym(colnames(mapped_stat)[2])))+geom_bar(stat="identity",fill='darkgreen',width=0.8)+scale_y_log10()+theme(aspect.ratio = 1/2)
+  #print(plot+coord_flip())
+  # display abricate results
+  }
+  cat('\n\n<!-- -->\n\n')
+ 
+
+  #blast_ids <- (paste(i,"_report_blast.csv",sep=""))
+  #blast_df <- read.csv(blast_ids,header = TRUE,sep = "\t")
+  #colnames(blast_df) <- c("SEQUENCE","ACCESSION","LENGTH","%COVERAGE","%IDENTITY","Evalue","ORGANISM")
+  #print(knitr::kable(blast_df,align="lcr",caption = "BLAST hits of consensus sequences.Only displays the top hit"))
+  #cat('\n\n<!-- -->\n\n')
+}
+```
+<br>
+
+<br>
+
+## Taxonomic classification of raw reads 
+
+```{r, echo=FALSE}
+library("htmltools")
+htmltools::tags$iframe(
+  src = base64enc::dataURI(file= params$krona, mime="text/html; charset=UTF-8"),
+  style="border:10; position:relative; top:0; left:; right::; bottom:; width:100%; height:800px"
+)
+```

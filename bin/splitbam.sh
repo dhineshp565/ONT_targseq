@@ -17,9 +17,9 @@ samtools idxstats "$1_unfilt.bam" > $1_unfilt_idxstats.csv
 samtools view -b -h -F 0x900 -q 30 $2|samtools sort > $1.bam	
 samtools stats "$1.bam" > $1_stats.txt
 #trims primers from both ends of the amplicon using primer bed file
-#samtools ampliconclip --both-ends -b $3 "$1.bam"	> $1_trimmed.bam
+samtools ampliconclip --both-ends -b $3 "$1.bam"	> $1_trimmed.bam
 # sorts the bam file for spitting	
-samtools sort "$1.bam" > $1_tr_sorted.bam
+samtools sort "$1_trimmed.bam" > $1_tr_sorted.bam
 #index sorted bam file and generate read counts for each amplicon
 samtools index "$1_tr_sorted.bam" > $1_sorted.bai
 samtools idxstats "$1_tr_sorted.bam" > $1_idxstats.txt
@@ -40,7 +40,7 @@ then
 			samtools index "$1_${len}_${amp}.bam" > $1_${len}_${amp}.bai
 			samtools idxstats "$1_${len}_${amp}.bam" > $1_${len}_${amp}_idxstats.txt
 			# generate consensus for full length reads
-			samtools consensus -A --min-BQ 20 --min-MQ 30 -f fasta "$1_${len}_${amp}.bam" > $1_${amp}.fasta
+			samtools consensus -A -f fasta "$1_${len}_${amp}.bam" > $1_${amp}.fasta
 			# change fasta header with sample and amplicon names
 			sed -i "s/>.*/>$1_${amp}_consensus/" $1_${amp}.fasta
 	done < "$1_mappedreads.txt"

@@ -271,17 +271,6 @@ process orfipy {
 	script:
 	"""
 	orfipy ${consensus} --dna ${SampleName}_ORF.fasta --min 1000 --outdir ${SampleName}_ORF --start ATG
-
-    #if no ORF sequence found - create a orf file with no consensus headers
-		if [ \$(wc -l < ${SampleName}_ORF/"${SampleName}_ORF.fasta") == "0" ]
-		then 
-			echo -e ">No_consensus/${SampleName}_ORF" >> ${SampleName}_ORF/${SampleName}_ORF.fasta
-				
-		
-		else
-        #remove trailing characters from default orfipy sequence headers
-			sed -i '/>/ s/ORF.1.*/ORF/g' ${SampleName}_ORF/${SampleName}_ORF.fasta
-		fi
 	"""
 
 }

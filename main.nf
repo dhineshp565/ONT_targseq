@@ -158,6 +158,44 @@ process kraken2_consensus {
 	"""
 }
 
+//centrifuge for taxonomy classification
+process centrifuge {
+	publishDir "${params.out_dir}/centrifuge/",mode:"copy"
+	label "high"
+	input:
+	tuple val(SampleName),path (SamplePath)
+	path(db_path)
+	
+	output:
+	path ("${SampleName}_cent_report.csv")
+	path ("${SampleName}_centrifuge_kstyle.csv"),emit:(centrifuge_raw)
+
+	script:
+	"""
+	index=\$(find -L ${db_path} -name "*.2.cf" -not -name "._*"  | sed 's/.2.cf//')
+	centrifuge -x \${index} -U ${SamplePath} -q -S ${SampleName}_centrifuge.csv --report ${SampleName}_cent_report.csv -p 2
+	centrifuge-kreport -x \${index} "${SampleName}_centrifuge.csv" > ${SampleName}_centrifuge_kstyle.csv
+	
+	"""
+}
+process centrifuge_consensus {
+	publishDir "${params.out_dir}/centrifuge_cons/",mode:"copy"
+	label "high"
+	input:
+	tuple val(SampleName),path (SamplePath)
+	path(db_path)
+	
+	output:
+	path ("${SampleName}_consensus_centrifuge.csv")
+	path ("${SampleName}_consensus_kstyle.csv"),emit:(centrifuge_cons)
+	
+	script:
+	"""
+	index=\$(find -L ${db_path} -name "*.2.cf" -not -name "._*"  | sed 's/.2.cf//')
+	centrifuge -x \${index} -U ${SamplePath} -f -S ${SampleName}_consensus_centrifuge.csv -p 2
+	centrifuge-kreport -x \${index} "${SampleName}_consensus_centrifuge.csv" > ${SampleName}_consensus_kstyle.csv
+	"""
+}
 
 //krona plots
 process krona_kraken {
@@ -270,7 +308,7 @@ process orfipy {
 	path ("${SampleName}_ORF")
 	script:
 	"""
-	orfipy ${consensus} --dna ${SampleName}_ORF.fasta --min 1000 --outdir ${SampleName}_ORF --start ATG
+	orfipy ${consensus} --dna ${SampleName}_ORF.fasta --min 350 --outdir ${SampleName}_ORF --start ATG
 	"""
 
 }
@@ -296,14 +334,20 @@ workflow {
 			kraken=params.kraken_db
 			kraken2(porechop.out,kraken)
 		}
-		         
+		if (params.centri_db){
+			centri=params.centri_db
+			centrifuge(porechop.out,centri)
+		}           
 			  
 	 } else {
 		if (params.kraken_db){
 			kraken=params.kraken_db
 			kraken2(merge_fastq.out,kraken)
 		}
-		
+		if (params.centri_db){
+			centri=params.centri_db
+			centrifuge(merge_fastq.out,centri)
+		}
 	}
 
 	// create consensus
@@ -319,7 +363,13 @@ workflow {
 		
 	}
 	//condition for centrifuge classification
-	
+	if (params.centri_db){
+		centri=params.centri_db
+		centrifuge_consensus(splitbam.out.consensus,centri)
+		centri_raw=centrifuge.out.centrifuge_raw
+		centri_cons=centrifuge_consensus.out.centrifuge_cons
+		krona_centrifuge(centri_raw.collect(),centri_cons.collect())
+	}
 	// qc report using split bam out put
 	stats=splitbam.out.unfilt_stats
 	idxstats=splitbam.out.idxstats
@@ -335,6 +385,10 @@ workflow {
 	if (params.kraken_db){
 		make_report(make_csv.out,krona_kraken.out.raw,splitbam.out.mapped.collect(),splitbam.out.cons_only.collect(),rmd_file)
 	}
+	if (params.centri_db){
+		make_report(make_csv.out,krona_centrifuge.out.raw,splitbam.out.mapped.collect(),splitbam.out.cons_only.collect(),rmd_file)
+	}
 	
 	
 }
+

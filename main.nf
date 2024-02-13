@@ -89,7 +89,7 @@ process splitbam {
 	input:
 	val(SampleName)
 	path(SamplePath)
-	//path (primerbed)
+	path (primerbed)
 	output:
 	val(SampleName),emit:SampleName
 	path("${SampleName}_stats.txt"),emit:stats
@@ -98,11 +98,9 @@ process splitbam {
 	tuple val(SampleName),path("${SampleName}_consensus.fasta"),emit:consensus
 	path("${SampleName}_consensus.fasta"),emit:cons_only
 	path("${SampleName}_unfilt_stats.txt"),emit:unfilt_stats
-	path("${SampleName}_flagstat.txt"),emit:flagstat
-	path ("${SampleName}_unfilt_idxstats.csv"),emit:unfilt_idxstats
 	script:
 	"""
-	splitbam.sh ${SampleName} ${SamplePath} 
+	splitbam.sh ${SampleName} ${SamplePath} ${primerbed}
 
 	"""
 }
@@ -264,12 +262,13 @@ process orfipy {
 	label "low"
 	publishDir "${params.out_dir}/orf",mode:"copy"
 	input:
-	tuple val(SampleName),path (consensus)
+	tuple val(SampleName),path("${SampleName}_consensus.fasta")
 	output:
 	path ("${SampleName}_ORF")
 	script:
 	"""
-	orfipy ${consensus} --dna ${SampleName}_ORF.fasta --min 350 --outdir ${SampleName}_ORF --start ATG
+	orfipy ${SampleName}_consensus.fasta --dna ${SampleName}_ORF.fasta --min 800 --outdir ${SampleName}_ORF --start ATG
+	sed -i '/>/ s/ORF.*/ORF/g' ${SampleName}_ORF/${SampleName}_ORF.fasta
 	"""
 
 }
@@ -279,7 +278,7 @@ workflow {
 	.fromPath(params.input)
 	merge_fastq(make_csv(data).splitCsv(header:true).map { row-> tuple(row.SampleName,row.SamplePath)})
 	reference=file("${baseDir}/reference.fasta")
-	//primerbed=file("${baseDir}/primer.bed")
+	primerbed=file("${baseDir}/primer.bed")
 	//trim barcodes and adapter sequences
 	if (params.trim_barcodes){
 		porechop(merge_fastq.out)
@@ -306,7 +305,7 @@ workflow {
 	}
 
 	// create consensus
-	splitbam(minimap2.out)
+	splitbam(minimap2.out,primerbed)
 	
 	//condition for kraken2 classification
 	if (params.kraken_db){

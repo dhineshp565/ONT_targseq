@@ -1,8 +1,8 @@
-PSaV_VP1_NC_000940.1_refseq 1   19
-PSaV_VP1_NC_000940.1_refseq 1666    1685
-BRSV_Fusion_gene_Amplicon   1   21  
-BRSV_Fusion_gene_Amplicon   1771    1792
-BRSV_G_gene_Amplicon    1   20
-BRSV_G_gene_Amplicon    1099    1119
-BRSV_N_gene_Amplicon    1   21  
-BRSV_N_gene_Amplicon    1331    1351  
+PSaV_VP1_GIII 1   19
+PSaV_VP1_GIII 1666    1685
+BRSV_Fusion_gene   1   21  
+BRSV_Fusion_gene   1771    1792
+BRSV_G_gene    1   20
+BRSV_G_gene    1099    1119
+BRSV_N_gene    1   21  
+BRSV_N_gene    1331    1351  

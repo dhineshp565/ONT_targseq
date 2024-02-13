@@ -40,7 +40,7 @@ then
 			samtools index "$1_${len}_${amp}.bam" > $1_${len}_${amp}.bai
 			samtools idxstats "$1_${len}_${amp}.bam" > $1_${len}_${amp}_idxstats.txt
 			# generate consensus for full length reads
-			samtools consensus -f fasta "$1_${len}_${amp}.bam" > $1_${amp}.fasta
+			samtools consensus -A --min-BQ 20 --min-MQ 30 -f fasta "$1_${len}_${amp}.bam" > $1_${amp}.fasta
 			# change fasta header with sample and amplicon names
 			sed -i "s/>.*/>$1_${amp}_consensus/" $1_${amp}.fasta
 	done < "$1_mappedreads.txt"

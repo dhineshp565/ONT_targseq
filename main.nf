@@ -37,12 +37,16 @@ process merge_fastq {
 		if [[ "\${count}" != "0" ]]
 		then
 			cat ${SamplePath}/*.fastq.gz > ${SampleName}.fastq.gz
+			nanoq -i ${SampleName}.fastq.gz -s -H > ${SampleName}_readstats.csv
+			nanoq -i ${SampleName}.fastq.gz -q 20 -o ${SampleName}_filtered.fastq.gz
 		
 		else
 			count=\$(ls -1 ${SamplePath}/*.fastq 2>/dev/null | wc -l)
 			if [[ "\${count}" != "0" ]]
 			then
 				cat ${SamplePath}/*.fastq > ${SampleName}.fastq
+				nanoq -i ${SampleName}.fastq.gz -s -H > ${SampleName}_readstats.csv
+				nanoq -i ${SampleName}.fastq -q 20 -o ${SampleName}_filtered.fastq
 			fi
 		fi
 	"""
@@ -85,13 +89,14 @@ process splitbam {
 	input:
 	val(SampleName)
 	path(SamplePath)
-	path (primerbed)
+	//path (primerbed)
 	output:
 	val(SampleName),emit:SampleName
 	path("${SampleName}_stats.txt"),emit:stats
 	path("${SampleName}_mappedreads.txt"),emit:mapped
 	path("${SampleName}_idxstats.txt"),emit:idxstats
 	tuple val(SampleName),path("${SampleName}_consensus.fasta"),emit:consensus
+	path("${SampleName}_consensus.fasta"),emit:cons_only
 	path("${SampleName}_unfilt_stats.txt"),emit:unfilt_stats
 	path("${SampleName}_flagstat.txt"),emit:flagstat
 	path ("${SampleName}_unfilt_idxstats.csv"),emit:unfilt_idxstats
@@ -231,13 +236,14 @@ process make_report {
 	
 	label "low"
 	input:
-	path (csv)
+	path(csv)
 	path(krona_reports_raw)
 	path(mappedreads)
+	path(cons)
 	//path(kraken_cons)
 	path(rmdfile)
 	output:
-	path("Bovreproseq_results_report.html")
+	path("Ampliseq_results_report.html")
 	script:
 	"""
 	
@@ -260,6 +266,7 @@ process make_report {
 	#		echo "C	NO READS FOUND	NA" >> \${k}	
 	 #	fi
 	#done
+
 
 	cp ${rmdfile} report.Rmd
 	
@@ -291,44 +298,38 @@ process blast_cons {
 }
 
 
-// uses custome database to predict the presence of the amplicons
-process abricate{
-	publishDir "${params.out_dir}/abricate/",mode:"copy"
+
+process orfipy {
 	label "low"
+	publishDir "${params.out_dir}/orf",mode:"copy"
 	input:
-	tuple val(SampleName),path(consensus)
-	path(dbdir)
+	tuple val(SampleName),path (consensus)
 	output:
-	path("${SampleName}_abricate.csv")
+	path ("${SampleName}_ORF")
 	script:
 	"""
-	abricate --datadir ${dbdir} --db Bovreproseq -minid 60  -mincov 60 --quiet ${consensus} 1> ${SampleName}_abricate.csv
+	orfipy ${consensus} --dna ${SampleName}_ORF.fasta --min 900 --outdir ${SampleName}_ORF --start ATG
+
+    #if no ORF sequence found - create a orf file with no consensus headers
+		if [ \$(wc -l < ${SampleName}_ORF/"${SampleName}_ORF.fasta") == "0" ]
+		then 
+			echo -e ">No_consensus/${SampleName}_ORF" >> ${SampleName}_ORF/${SampleName}_ORF.fasta
+				
+		
+		else
+        #remove trailing characters from default orfipy sequence headers
+			sed -i '/>/ s/ORF.1.*/ORF/g' ${SampleName}_ORF/${SampleName}_ORF.fasta
+		fi
 	"""
-	
+
 }
-
-process mlst {
-	publishDir "${params.out_dir}/mlst/",mode:"copy"
-	label "low"
-	input:
-	tuple val(SampleName),path(consensus)
-	output:
-	path("${SampleName}_MLST_results.csv")
-	script:
-	"""
-	mlst --legacy --scheme campylobacter_nonjejuni_9 ${consensus} > ${SampleName}_MLST.csv
-	campmlst.sh ${SampleName}_MLST.csv
-	"""
-}
-
-
 
 workflow {
 	data=Channel
 	.fromPath(params.input)
 	merge_fastq(make_csv(data).splitCsv(header:true).map { row-> tuple(row.SampleName,row.SamplePath)})
 	reference=file("${baseDir}/reference.fasta")
-	//primerbed=file("${baseDir}/Bovreproseq_primer.bed")
+	//primerbed=file("${baseDir}/primer.bed")
 	//trim barcodes and adapter sequences
 	if (params.trim_barcodes){
 		porechop(merge_fastq.out)
@@ -361,7 +362,7 @@ workflow {
 	}
 
 	// create consensus
-	splitbam(minimap2.out,primerbed)
+	splitbam(minimap2.out)
 	
 	//condition for kraken2 classification
 	if (params.kraken_db){
@@ -388,16 +389,17 @@ workflow {
 		
 	//tax=("${baseDir}/taxdb")
 	//blast_cons(splitbam.out.consensus,tax,db1)
-
+	orfipy(splitbam.out.consensus)
 	
 	//generate report
 	rmd_file=file("${baseDir}/Ampliseq.Rmd")
 	if (params.kraken_db){
-		make_report(make_csv.out,krona_kraken.out.raw,splitbam.out.mapped.collect(),rmd_file)
+		make_report(make_csv.out,krona_kraken.out.raw,splitbam.out.mapped.collect(),splitbam.out.cons_only.collect(),rmd_file)
 	}
 	if (params.centri_db){
-		make_report(make_csv.out,krona_centrifuge.out.raw,splitbam.out.mapped.collect(),rmd_file)
+		make_report(make_csv.out,krona_centrifuge.out.raw,splitbam.out.mapped.collect(),splitbam.out.cons_only.collect(),rmd_file)
 	}
 	
 	
 }
+

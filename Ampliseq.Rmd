@@ -38,7 +38,7 @@ for (i in sampleid){
   colnames (mapped_stat) <- c("AMPLICON","MAPPED_READS")
   print(knitr::kable(mapped_stat,align="ll",caption = "NO. OF MAPPED READS. Generated using minimap2 and samtools"))
   cat('\n\n<!-- -->\n\n')
-  fasta_id <- (paste(i,"_consensus.fasta",sep=""))
+  fasta_id <- (paste(i,"_ORF.fasta",sep=""))
   fasta_file <- read.csv(fasta_id,header = FALSE )
   print(knitr::kable(fasta_file,col.names = c("Consensus Sequence")))
   cat("\n")

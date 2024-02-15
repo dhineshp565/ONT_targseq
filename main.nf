@@ -198,7 +198,7 @@ process make_report {
 	path(csv)
 	path(krona_reports_raw)
 	path(mappedreads)
-	path(cons)
+	path(orf)
 	//path(kraken_cons)
 	path(rmdfile)
 	output:
@@ -217,14 +217,7 @@ process make_report {
 			echo "NA NA NA" >> \${i}
 	 	fi
 	done
-	# handle empty kraken consensus files
-	#for k in *_cons_kraken.csv
-	#do
-	#	#if [ \$(wc -l < "\${k}" ) -eq 0 ]
-	#	#then
-	#		echo "C	NO READS FOUND	NA" >> \${k}	
-	 #	fi
-	#done
+	
 
 
 	cp ${rmdfile} report.Rmd
@@ -264,11 +257,18 @@ process orfipy {
 	input:
 	tuple val(SampleName),path("${SampleName}_consensus.fasta")
 	output:
-	path ("${SampleName}_ORF")
+	path ("${SampleName}_ORF.fasta")
 	script:
 	"""
-	orfipy ${SampleName}_consensus.fasta --dna ${SampleName}_ORF.fasta --min 800 --outdir ${SampleName}_ORF --start ATG
-	sed -i '/>/ s/ORF.*/ORF/g' ${SampleName}_ORF/${SampleName}_ORF.fasta
+	orfipy ${SampleName}_consensus.fasta --dna ${SampleName}_ORF.fasta --min 700 --outdir ${SampleName}_ORF --start ATG
+	mv ${SampleName}_ORF/${SampleName}_ORF.fasta ${SampleName}_ORF.fasta 
+	if [ $(wc -l < "${SampleName}_ORF.fasta") == "0" ]
+		then 
+			echo -e ">No_consensus/${SampleName}_ORF" > ${SampleName}_ORF.fasta
+	else 
+		sed -i '/>/ s/ORF.*/ORF/g' ${SampleName}_ORF.fasta
+	fi
+
 	"""
 
 }
@@ -331,7 +331,7 @@ workflow {
 	//generate report
 	rmd_file=file("${baseDir}/Ampliseq.Rmd")
 	if (params.kraken_db){
-		make_report(make_csv.out,krona_kraken.out.raw,splitbam.out.mapped.collect(),splitbam.out.cons_only.collect(),rmd_file)
+		make_report(make_csv.out,krona_kraken.out.raw,splitbam.out.mapped.collect(),orfipy.out.collect(),rmd_file)
 	}
 	
 	

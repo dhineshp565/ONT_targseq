@@ -1,5 +1,4 @@
 #!/bin/env bash
-
 # This script makes a csv file with sample name and sample path with headers (SampleName,SamplePath).
 # $1 = input path of fastq directories
 

@@ -260,14 +260,7 @@ process orfipy {
 	path ("${SampleName}_ORF.fasta")
 	script:
 	"""
-	orfipy ${SampleName}_consensus.fasta --dna ${SampleName}_ORF.fasta --min 700 --outdir ${SampleName}_ORF --start ATG
-	mv ${SampleName}_ORF/${SampleName}_ORF.fasta ${SampleName}_ORF.fasta 
-	if [ \$(wc -l < "${SampleName}_ORF.fasta") == "0" ]
-		then 
-			echo -e ">No_consensus/${SampleName}_ORF" > ${SampleName}_ORF.fasta
-	else 
-		sed -i '/>/ s/ORF.*/ORF/g' ${SampleName}_ORF.fasta
-	fi
+	orfy.sh ${SampleName} ${SampleName}_consensus.fasta
 
 	"""
 

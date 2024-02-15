@@ -262,7 +262,7 @@ process orfipy {
 	"""
 	orfipy ${SampleName}_consensus.fasta --dna ${SampleName}_ORF.fasta --min 700 --outdir ${SampleName}_ORF --start ATG
 	mv ${SampleName}_ORF/${SampleName}_ORF.fasta ${SampleName}_ORF.fasta 
-	if [ $(wc -l < "${SampleName}_ORF.fasta") == "0" ]
+	if [ \$(wc -l < "${SampleName}_ORF.fasta") == "0" ]
 		then 
 			echo -e ">No_consensus/${SampleName}_ORF" > ${SampleName}_ORF.fasta
 	else 

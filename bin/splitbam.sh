@@ -42,7 +42,7 @@ then
 			samtools idxstats "$1_${len}_${amp}.bam" > $1_${len}_${amp}_idxstats.txt
 			awk '{if ($3 >= 10) print $1,$2,$3}' "$1_${len}_${amp}_idxstats.txt" > $1_${amp}_mappedreads.txt
 			# generate consensus for full length reads
-			samtools consensus -d 10 -A -f fasta "$1_${len}_${amp}.bam" > $1_${amp}.fasta
+			samtools consensus -d 10 -A -l 100 -f fasta "$1_${len}_${amp}.bam" > $1_${amp}.fasta
 			# change fasta header with sample and amplicon names
 			sed -i "s/>.*/>$1_${amp}_consensus/" $1_${amp}.fasta
 	done < "$1_mappedreads.txt"

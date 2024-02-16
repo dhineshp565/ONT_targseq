@@ -20,38 +20,19 @@
                     "format": "directory-path",
                     "exists": true,
                     "mimetype": "text/csv",
-                    "description": "Path to directory with fastq directories",
-                    "help_text": "You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 3 columns, and a header row.",
-                    "fa_icon": "fas fa-folder-open"
+                    "description": "Path to directory containing sub-dir with fastq files",
+                    "fa_icon": "fas fa-folder-plus"
                 },
                 "kraken_db": {
                     "type": "string",
-                    "default": "None",
-                    "description": "Path to kraken2 database",
                     "format": "directory-path",
-                    "fa_icon": "fas fa-database"
+                    "fa_icon": "fas fa-database",
+                    "description": "Path to kraken2 database"
                 },
                 "out_dir": {
                     "type": "string",
-                    "default": "None",
                     "description": "Path to output files",
-                    "fa_icon": "fas fa-folder-open"
-                }
-            }
-        },
-        "optional": {
-            "title": "Optional",
-            "type": "object",
-            "description": "",
-            "default": "",
-            "properties": {
-                "trim_barcodes": {
-                    "type": "string",
-                    "default": "None",
-                    "description": "Select Yes to trim barcodes and adapters",
-                    "enum": [
-                        "Yes"
-                    ]
+                    "format": "directory-path"
                 }
             }
         }
@@ -59,9 +40,15 @@
     "allOf": [
         {
             "$ref": "#/definitions/input_output_options"
-        },
-        {
-            "$ref": "#/definitions/optional"
         }
-    ]
+    ],
+    "properties": {
+        "trim_barcodes": {
+            "type": "string",
+            "description": "Select Yes to trim barcodes and adpter sequences",
+            "enum": [
+                "Yes"
+            ]
+        }
+    }
 }

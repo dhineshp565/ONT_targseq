@@ -36,8 +36,8 @@
                 }
             }
         },
-        "new_group_1": {
-            "title": "New Group 1",
+        "optional": {
+            "title": "Optional",
             "type": "object",
             "description": "",
             "default": "",
@@ -57,7 +57,7 @@
             "$ref": "#/definitions/input_output_options"
         },
         {
-            "$ref": "#/definitions/new_group_1"
+            "$ref": "#/definitions/optional"
         }
     ]
 }

@@ -50,7 +50,6 @@
                     "default": "None",
                     "description": "Select Yes to trim barcodes and adapters",
                     "enum": [
-                        "No",
                         "Yes"
                     ]
                 }

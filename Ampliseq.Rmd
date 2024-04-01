@@ -12,6 +12,7 @@ params:
 library(knitr)
 library(ggplot2)
 library(htmltools)
+library(base64enc)
 ```
 
 
@@ -39,7 +40,7 @@ for (i in sampleid){
   print(knitr::kable(mapped_stat,align="ll",caption = "NO. OF MAPPED READS. Generated using minimap2 and samtools"))
   cat('\n\n<!-- -->\n\n')
   fasta_id <- (paste(i,"_ORF.fasta",sep=""))
-  fasta_file <- read.csv(fasta_id,header = FALSE )
+  fasta_file <- readLines(fasta_id)
   # Display the content
   cat("```\n")
   cat(fasta_file, sep = "\n")

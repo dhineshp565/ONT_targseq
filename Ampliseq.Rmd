@@ -40,8 +40,18 @@ for (i in sampleid){
   cat('\n\n<!-- -->\n\n')
   fasta_id <- (paste(i,"_ORF.fasta",sep=""))
   fasta_file <- read.csv(fasta_id,header = FALSE )
-  print(knitr::kable(fasta_file,col.names = c("Consensus Sequence")))
-  cat("\n")
+  # Display the content
+  cat("```\n")
+  cat(fasta_file, sep = "\n")
+  cat("\n```\n")
+  # Encode the file content as base64
+  encoded_content <- base64encode(charToRaw(paste(fasta_file, collapse = "\n")))
+  # Get file name from file path and remove extra underscores
+  file_name <- gsub("_+", "_", basename(fasta_id))
+  # Provide a download link for the encoded FASTA content with file name
+  cat('<a href="data:text/plain;charset=utf-8;base64,', encoded_content, '" download="', file_name, '">Download FASTA file</a>')
+  
+  cat('\n\n<!-- -->\n\n')
   }
 
 ```

@@ -92,19 +92,19 @@ process splitbam {
 	path (primerbed)
 	output:
 	val(SampleName),emit:SampleName
-	path("${SampleName}_stats.txt"),emit:stats
 	path("${SampleName}_mappedreads.txt"),emit:mapped
 	path("${SampleName}_idxstats.txt"),emit:idxstats
 	tuple val(SampleName),path("${SampleName}_consensus.fasta"),emit:consensus
-	path("${SampleName}_consensus.fasta"),emit:cons_only
+	path("${SampleName}_consensus.fasta"),emit:(cons_only)
 	path("${SampleName}_unfilt_stats.txt"),emit:unfilt_stats
+	path("${SampleName}_unfilt_idxstats.csv"),emit:unfilt_idx
+	path ("${SampleName}_full_length_mappedreads.txt"),emit:full_reads
 	script:
 	"""
 	splitbam.sh ${SampleName} ${SamplePath} ${primerbed}
 
 	"""
 }
-
 
 //multiqc generate mapped read statistics from samtools output
 

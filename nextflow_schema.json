@@ -12,7 +12,8 @@
             "description": "Define where the pipeline should find input data and save output data.",
             "required": [
                 "input",
-                "kraken_db"
+                "kraken_db",
+                "out_dir"
             ],
             "properties": {
                 "input": {
@@ -21,7 +22,8 @@
                     "exists": true,
                     "mimetype": "text/csv",
                     "description": "Path to directory containing sub-dir with fastq files",
-                    "fa_icon": "fas fa-folder-plus"
+                    "fa_icon": "fas fa-folder-plus",
+                    "default": "filepath"
                 },
                 "kraken_db": {
                     "type": "string",
@@ -48,6 +50,15 @@
                     "enum": [
                         "Yes"
                     ]
+                },
+                "medaka_model": {
+                    "type": "string",
+                    "default": "r1041_e82_400bps_sup_g615",
+                    "enum": [
+                        "r1041_e82_400bps_sup_g615",
+                        "r941_e81_hac_g514"
+                    ],
+                    "description": "Select basecalling model for medaka polishing"
                 }
             }
         }

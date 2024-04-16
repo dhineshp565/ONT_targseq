@@ -112,6 +112,7 @@ process medaka {
 	input:
 	tuple val(SampleName),path(SamplePath)
 	tuple val(SampleName),path(consensus)
+	val (medaka_model)
 	output:
 	tuple val(SampleName),path("${SampleName}_medaka_consensus.fasta"),emit:consensus
 	path("${SampleName}_medaka_consensus.fasta"),emit: cons_only
@@ -120,7 +121,7 @@ process medaka {
 	
 	if [ \$(wc -l < "${consensus}" ) -gt 1 ]
 		then
-		medaka_consensus -i ${SamplePath} -d ${consensus} -o ${SampleName}_medaka_consensus -m r1041_e82_400bps_sup_g615
+		medaka_consensus -i ${SamplePath} -d ${consensus} -o ${SampleName}_medaka_consensus -m ${medaka_model}
 		mv ${SampleName}_medaka_consensus/consensus.fasta ${SampleName}_medaka_consensus.fasta
 	else 
 		echo ">${SampleName} No consensus sequences to polish" > ${SampleName}_medaka_consensus.fasta
@@ -311,7 +312,7 @@ workflow {
 	splitbam(minimap2.out,primerbed)
 
 	// medaka polishing
-	medaka(merge_fastq.out,splitbam.out.consensus)
+	medaka(merge_fastq.out,splitbam.out.consensus,params.medaka_model)
 
 	//condition for kraken2 classification
 	if (params.kraken_db){

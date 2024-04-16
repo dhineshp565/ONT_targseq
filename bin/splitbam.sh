@@ -54,8 +54,9 @@ then
 # handle empty consensus. when there are no mapped reads.add sequence header
 else
 		echo -e ">$1 No consensus" > $1_consensus.fasta
+		echo -e "Amplicon_Name Size $1" > $1_full_length_mappedreads.txt
 
 fi
 	# insert headers to mappedreads.txt
 sed -i "1i Amplicon_Name Size $1" "$1_mappedreads.txt"
-sed -i "1i Amplicon_Name Size $1" "$1_full_length_mappedreads.txt"
+

@@ -98,12 +98,35 @@ process splitbam {
 	path("${SampleName}_consensus.fasta"),emit:(cons_only)
 	path("${SampleName}_unfilt_stats.txt"),emit:unfilt_stats
 	path("${SampleName}_unfilt_idxstats.csv"),emit:unfilt_idx
-	path ("${SampleName}_full_length_mappedreads.txt"),emit:full_reads
+	
 	script:
 	"""
 	splitbam.sh ${SampleName} ${SamplePath} ${primerbed}
 
 	"""
+}
+
+process medaka {
+	publishDir "${params.out_dir}/medaka",mode:"copy"
+	label "high"
+	input:
+	tuple val(SampleName),path(SamplePath)
+	tuple val(SampleName),path(consensus)
+	output:
+	tuple val(SampleName),path("${SampleName}_medaka_consensus.fasta"),emit:consensus
+	path("${SampleName}_medaka_consensus.fasta"),emit: cons_only
+	script:
+	"""
+	
+	if [ \$(wc -l < "${consensus}" ) -gt 1 ]
+		then
+		medaka_consensus -i ${SamplePath} -d ${consensus} -o ${SampleName}_medaka_consensus -m r1041_e82_400bps_sup_g615
+		mv ${SampleName}_medaka_consensus/consensus.fasta ${SampleName}_medaka_consensus.fasta
+	else 
+		echo ">${SampleName} No consensus sequences to polish" > ${SampleName}_medaka_consensus.fasta
+	fi
+	"""
+
 }
 
 //multiqc generate mapped read statistics from samtools output
@@ -173,22 +196,7 @@ process krona_kraken {
 	ktImportTaxonomy -t 5 -m 3 -o consensus_classified.html ${consensus}
 	"""
 }
-process krona_centrifuge {
-	publishDir "${params.out_dir}/krona_centrifuge/",mode:"copy"
-	label "low"
-	input:
-	path(raw)
-	path(consensus)
-	
-	output:
-	path ("rawreads_classified.html"),emit:raw
-	path("consensus_classified.html"),emit:cons
-	script:
-	"""
-	ktImportTaxonomy -t 5 -m 3 -o rawreads_classified.html ${raw}
-	ktImportTaxonomy -t 5 -m 3 -o consensus_classified.html ${consensus}
-	"""
-}
+
 //make html report with rmarkdown
 process make_report {
 	publishDir "${params.out_dir}/",mode:"copy"
@@ -228,6 +236,7 @@ process make_report {
 
 }
 // performs remote blast of the consensus sequences
+
 process blast_cons {
 	publishDir "${params.out_dir}/blast/",mode:"copy"
 	label "high"
@@ -248,6 +257,7 @@ process blast_cons {
 	"""
 
 }
+
 
 
 
@@ -299,11 +309,14 @@ workflow {
 
 	// create consensus
 	splitbam(minimap2.out,primerbed)
-	
+
+	// medaka polishing
+	medaka(merge_fastq.out,splitbam.out.consensus)
+
 	//condition for kraken2 classification
 	if (params.kraken_db){
 		kraken=params.kraken_db
-		kraken2_consensus(splitbam.out.consensus,kraken)
+		kraken2_consensus(medaka.out.consensus,kraken)
 		kraken_raw=kraken2.out.kraken2_raw
 		kraken_cons=kraken2_consensus.out.kraken2_cons
 		krona_kraken(kraken_raw.collect(),kraken_cons.collect())
@@ -319,13 +332,14 @@ workflow {
 		
 	//tax=("${baseDir}/taxdb")
 	//blast_cons(splitbam.out.consensus,tax,db1)
-	orfipy(splitbam.out.consensus)
+	orfipy(medaka.out.consensus)
 	
 	//generate report
 	rmd_file=file("${baseDir}/Ampliseq.Rmd")
 	if (params.kraken_db){
-		make_report(make_csv.out,krona_kraken.out.raw,splitbam.out.mapped.collect(),orfipy.out.collect(),rmd_file)
+		make_report(make_csv.out,krona_kraken.out.raw,splitbam.out.mapped.collect(),medaka.out.cons_only.collect(),rmd_file)
 	}
+	
 	
 	
 	

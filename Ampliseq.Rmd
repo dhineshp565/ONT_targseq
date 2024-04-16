@@ -39,7 +39,7 @@ for (i in sampleid){
   colnames (mapped_stat) <- c("AMPLICON","MAPPED_READS")
   print(knitr::kable(mapped_stat,align="ll",caption = "NO. OF MAPPED READS. Generated using minimap2 and samtools"))
   cat('\n\n<!-- -->\n\n')
-  fasta_id <- (paste(i,"_ORF.fasta",sep=""))
+  fasta_id <- (paste(i,"_medaka_consensus.fasta",sep=""))
   fasta_file <- readLines(fasta_id)
   # Display the content
   cat("```\n")

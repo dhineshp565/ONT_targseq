@@ -45,7 +45,7 @@ process merge_fastq {
 			if [[ "\${count}" != "0" ]]
 			then
 				cat ${SamplePath}/*.fastq > ${SampleName}.fastq
-				nanoq -i ${SampleName}.fastq.gz -s -H > ${SampleName}_readstats.csv
+				nanoq -i ${SampleName}.fastq -s -H > ${SampleName}_readstats.csv
 				nanoq -i ${SampleName}.fastq -q 20 -o ${SampleName}_filtered.fastq
 			fi
 		fi

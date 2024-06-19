@@ -38,7 +38,7 @@ process merge_fastq {
 		then
 			cat ${SamplePath}/*.fastq.gz > ${SampleName}.fastq.gz
 			nanoq -i ${SampleName}.fastq.gz -s -H > ${SampleName}_readstats.csv
-			nanoq -i ${SampleName}.fastq.gz -q 20 -o ${SampleName}_filtered.fastq.gz
+			nanoq -i ${SampleName}.fastq.gz -q 10 -o ${SampleName}_filtered.fastq.gz
 		
 		else
 			count=\$(ls -1 ${SamplePath}/*.fastq 2>/dev/null | wc -l)
@@ -46,7 +46,7 @@ process merge_fastq {
 			then
 				cat ${SamplePath}/*.fastq > ${SampleName}.fastq
 				nanoq -i ${SampleName}.fastq -s -H > ${SampleName}_readstats.csv
-				nanoq -i ${SampleName}.fastq -q 20 -o ${SampleName}_filtered.fastq
+				nanoq -i ${SampleName}.fastq -q 10 -o ${SampleName}_filtered.fastq
 			fi
 		fi
 	"""
@@ -75,7 +75,7 @@ process minimap2 {
         tuple val(SampleName),path(SamplePath)
         output:
         val(SampleName)
-		path ("${SampleName}.sam")
+	path ("${SampleName}.sam")
         script:
         """
         minimap2 -ax map-ont ${reference} ${SamplePath} > ${SampleName}.sam

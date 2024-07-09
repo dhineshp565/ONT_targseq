@@ -207,8 +207,8 @@ process make_report {
 	path(csv)
 	path(krona_reports_raw)
 	path(mappedreads)
-	path(orf)
-	//path(kraken_cons)
+	path(cons_only)
+	path(abricate)
 	path(rmdfile)
 	output:
 	path("Ampliseq_results_report.html")
@@ -277,6 +277,22 @@ process orfipy {
 
 }
 
+process abricate{
+	publishDir "${params.out_dir}/abricate/",mode:"copy"
+	label "low"
+	input:
+	tuple val(SampleName),path(consensus)
+	path(dbdir)
+	output:
+	path("${SampleName}_abricate.csv"),emit:abricate
+	script:
+	"""
+	abricate --datadir ${dbdir} --db targseq --quiet ${consensus} 1> ${SampleName}_abricate.csv
+	sed -i "s/_consensus//g" "${SampleName}_abricate.csv"
+	"""
+	
+}
+
 workflow {
 	data=Channel
 	.fromPath(params.input)
@@ -329,16 +345,17 @@ workflow {
 	stats=splitbam.out.unfilt_stats
 	idxstats=splitbam.out.idxstats
 	multiqc(stats.mix(idxstats).collect())
+	dbdir=file("${baseDir}/targseq")
 	
-		
+	abricate(medaka.out.consensus,dbdir)
 	//tax=("${baseDir}/taxdb")
 	//blast_cons(splitbam.out.consensus,tax,db1)
-	orfipy(medaka.out.consensus)
+	//orfipy(medaka.out.consensus)
 	
 	//generate report
 	rmd_file=file("${baseDir}/Ampliseq.Rmd")
 	if (params.kraken_db){
-		make_report(make_csv.out,krona_kraken.out.raw,splitbam.out.mapped.collect(),medaka.out.cons_only.collect(),rmd_file)
+		make_report(make_csv.out,krona_kraken.out.raw,splitbam.out.mapped.collect(),medaka.out.cons_only.collect(),abricate.out.collect(),rmd_file)
 	}
 	
 	

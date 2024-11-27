@@ -38,7 +38,7 @@ process merge_fastq {
 		then
 			cat ${SamplePath}/*.fastq.gz > ${SampleName}.fastq.gz
 			nanoq -i ${SampleName}.fastq.gz -s -H > ${SampleName}_readstats.csv
-			nanoq -i ${SampleName}.fastq.gz -q 10 -o ${SampleName}_filtered.fastq.gz
+			nanoq -i ${SampleName}.fastq.gz -q 20 -o ${SampleName}_filtered.fastq.gz
 		
 		else
 			count=\$(ls -1 ${SamplePath}/*.fastq 2>/dev/null | wc -l)
@@ -46,7 +46,7 @@ process merge_fastq {
 			then
 				cat ${SamplePath}/*.fastq > ${SampleName}.fastq
 				nanoq -i ${SampleName}.fastq -s -H > ${SampleName}_readstats.csv
-				nanoq -i ${SampleName}.fastq -q 10 -o ${SampleName}_filtered.fastq
+				nanoq -i ${SampleName}.fastq -q 20 -o ${SampleName}_filtered.fastq
 			fi
 		fi
 	"""
@@ -347,7 +347,7 @@ workflow {
 	multiqc(stats.mix(idxstats).collect())
 	dbdir=file("${baseDir}/targseq")
 	
-	abricate(medaka.out.consensus,dbdir)
+	abricate(splitbam.out.consensus,dbdir)
 	//tax=("${baseDir}/taxdb")
 	//blast_cons(splitbam.out.consensus,tax,db1)
 	//orfipy(medaka.out.consensus)
@@ -355,7 +355,7 @@ workflow {
 	//generate report
 	rmd_file=file("${baseDir}/Ampliseq.Rmd")
 	if (params.kraken_db){
-		make_report(make_csv.out,krona_kraken.out.raw,splitbam.out.mapped.collect(),medaka.out.cons_only.collect(),abricate.out.collect(),rmd_file)
+		make_report(make_csv.out,krona_kraken.out.raw,splitbam.out.mapped.collect(),splitbam.out.cons_only.collect(),abricate.out.collect(),rmd_file)
 	}
 	
 	

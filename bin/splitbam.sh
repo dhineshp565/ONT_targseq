@@ -29,9 +29,9 @@ then
 			amp=$(echo $lines|cut -f1 -d' ')
 			# split bam 
 			samtools view -b "$1_sorted.bam" "${amp}" > $1_${amp}.bam
-			samtools ampliconclip --both-ends -b $3 "$1_${amp}.bam" > $1_trimmed_${amp}.bam
+			#samtools ampliconclip --both-ends -b $3 "$1_${amp}.bam" > $1_trimmed_${amp}.bam
 			# generate consensus for full length reads
-			samtools consensus -A -f fasta "$1_trimmed_${amp}.bam" > $1_${amp}.fasta
+			samtools consensus -f fasta "$1_${amp}.bam" > $1_${amp}.fasta
 			# change fasta header with sample and amplicon names
 			sed -i "s/>.*/>$1_${amp}_consensus/" $1_${amp}.fasta
 	done < "$1_mappedreads.txt"

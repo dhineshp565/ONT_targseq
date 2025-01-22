@@ -1,8 +1,8 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema",
-    "$id": "https://raw.githubusercontent.com/ONT_ampliconseq/master/nextflow_schema.json",
-    "title": "ONT_ampliconseq pipeline parameters",
-    "description": "Pipeline for generating consensus from ONT targeted amplicon sequencing",
+    "$id": "https://raw.githubusercontent.com/ONT_targseq/master/nextflow_schema.json",
+    "title": "ONT_targseq pipeline parameters",
+    "description": "Pipeline for generating consensus sequence and typing from targeted amplicon sequencing using Oxford Nanopore Technologies",
     "type": "object",
     "definitions": {
         "input_output_options": {

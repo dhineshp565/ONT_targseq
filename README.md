@@ -14,8 +14,8 @@ nextflow run main.nf --input path_to_input --out_dir Results --kraken_db path_to
 Parameters:
 
 --input      Path to input directory
---out_dir     Output directory
---kraken_db  path to kraken database 
+--out_dir    Output directory
+--kraken_db  Path to kraken database 
 optional
 --trim_barcodes barcode and adapter trimming using porechop
 

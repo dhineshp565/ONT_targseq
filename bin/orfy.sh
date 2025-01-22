@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-# This script makes a csv file with sample name and sample path with headers (SampleName,SamplePath).
 # $1 = Sampple name , $2 = Consensus sequence
 
 orfipy $2 --dna $1_ORF.fasta --min 700 --outdir $1_ORF --start ATG

@@ -75,7 +75,7 @@ process minimap2 {
         tuple val(SampleName),path(SamplePath)
         output:
         val(SampleName)
-	path ("${SampleName}.sam")
+		path ("${SampleName}.sam")
         script:
         """
         minimap2 -ax map-ont ${reference} ${SamplePath} > ${SampleName}.sam
@@ -163,22 +163,6 @@ process kraken2 {
 	kraken2 --db $db_path --output ${SampleName}_kraken.csv --report ${SampleName}_kraken_report.csv --threads 1 ${SamplePath}
 	"""
 }
-process kraken2_consensus {
-	publishDir "${params.out_dir}/kraken2_cons/",mode:"copy"
-	label "high"
-	input:
-	tuple val(SampleName),path (SamplePath)
-	path(db_path)
-	
-	output:
-	path ("${SampleName}_cons_kraken.csv"),emit:(kraken2_cons)
-	path ("${SampleName}_cons_kraken_report.csv")
-
-	script:
-	"""
-	kraken2 --db $db_path --output ${SampleName}_cons_kraken.csv --report ${SampleName}_cons_kraken_report.csv --threads 3 ${SamplePath} --use-names --use-mpa-style
-	"""
-}
 
 //krona plots
 process krona_kraken {
@@ -186,15 +170,14 @@ process krona_kraken {
 	label "low"
 	input:
 	path(raw)
-	path(consensus)
 	
 	output:
 	path ("rawreads_classified.html"),emit:raw
-	path("consensus_classified.html"),emit:cons
+	
 	script:
 	"""
 	ktImportTaxonomy -t 5 -m 3 -o rawreads_classified.html ${raw}
-	ktImportTaxonomy -t 5 -m 3 -o consensus_classified.html ${consensus}
+
 	"""
 }
 
@@ -211,7 +194,7 @@ process make_report {
 	path(abricate)
 	path(rmdfile)
 	output:
-	path("Ampliseq_results_report.html")
+	path("*.html")
 	script:
 	"""
 	
@@ -231,8 +214,8 @@ process make_report {
 
 	cp ${rmdfile} report.Rmd
 	
+	Rscript -e 'rmarkdown::render(input="report.Rmd", params=list(csv="samples.csv", krona="rawreads.html"), output_file = paste0("targseq_results_report_", Sys.Date(), "_", format(Sys.time(), "%H-%M-%S"), ".html"))'
 
-	Rscript -e 'rmarkdown::render(input="report.Rmd",params=list(csv="samples.csv",krona="rawreads.html"),output_file = "Ampliseq_results_report.html")'
 	"""
 
 }
@@ -285,12 +268,32 @@ process abricate{
 	path(dbdir)
 	output:
 	path("${SampleName}_abricate.csv"),emit:abricate
+	path("${SampleName}_withseq.csv"),emit:withseq
 	script:
 	"""
-	abricate --datadir ${dbdir} --db targseq --quiet ${consensus} 1> ${SampleName}_abricate.csv
-	sed -i "s/_consensus//g" "${SampleName}_abricate.csv"
+	typing.sh ${SampleName} ${consensus} ${dbdir}
 	"""
 	
+}
+
+process make_LIMSfile {
+	publishDir "${params.out_dir}/LIMS/",mode:"copy"
+	label "low"
+	input:
+	path (withseq)
+	path (software_version_file)
+	output:
+	path("LIMSfile_*.tsv")
+	
+	script:
+	"""
+	date=\$(date '+%Y-%m-%d_%H-%M-%S')
+	
+	awk 'FNR==1 && NR!=1 { while (/^#F/) getline; } 1 {print}' *_withseq.csv > LIMSfile.tsv
+
+	cat ${software_version_file} LIMSfile.tsv > LIMSfile_\${date}.tsv
+
+	"""
 }
 
 workflow {
@@ -299,6 +302,7 @@ workflow {
 	merge_fastq(make_csv(data).splitCsv(header:true).map { row-> tuple(row.SampleName,row.SamplePath)})
 	reference=file("${baseDir}/reference.fasta")
 	primerbed=file("${baseDir}/primer.bed")
+	software_version_file=file("${baseDir}/software_version.tsv")
 	//trim barcodes and adapter sequences
 	if (params.trim_barcodes){
 		porechop(merge_fastq.out)
@@ -333,10 +337,10 @@ workflow {
 	//condition for kraken2 classification
 	if (params.kraken_db){
 		kraken=params.kraken_db
-		kraken2_consensus(medaka.out.consensus,kraken)
+		//kraken2_consensus(medaka.out.consensus,kraken)
 		kraken_raw=kraken2.out.kraken2_raw
-		kraken_cons=kraken2_consensus.out.kraken2_cons
-		krona_kraken(kraken_raw.collect(),kraken_cons.collect())
+		//kraken_cons=kraken2_consensus.out.kraken2_cons
+		krona_kraken(kraken_raw.collect())
 		
 	}
 	
@@ -348,14 +352,15 @@ workflow {
 	dbdir=file("${baseDir}/targseq")
 	
 	abricate(splitbam.out.consensus,dbdir)
+	make_LIMSfile(abricate.out.withseq.collect(),software_version_file)
 	//tax=("${baseDir}/taxdb")
 	//blast_cons(splitbam.out.consensus,tax,db1)
 	//orfipy(medaka.out.consensus)
 	
 	//generate report
-	rmd_file=file("${baseDir}/Ampliseq.Rmd")
+	rmd_file=file("${baseDir}/targseq.Rmd")
 	if (params.kraken_db){
-		make_report(make_csv.out,krona_kraken.out.raw,splitbam.out.mapped.collect(),splitbam.out.cons_only.collect(),abricate.out.collect(),rmd_file)
+		make_report(make_csv.out,krona_kraken.out.raw,splitbam.out.mapped.collect(),splitbam.out.cons_only.collect(),abricate.out.abricate.collect(),rmd_file)
 	}
 	
 	

@@ -17,7 +17,7 @@ sed -i "s/_consensus//g" "$1_abricate.csv"
 # Check if the output CSV file has less than 2 lines, if so, append a line indicating no consensus and none for all other fields
 if [[ $(wc -l < "$1_abricate.csv") -lt 2 ]]
 then
-	printf "$1.fasta\tNo_consensus\tNone\tNone\tNone\tNone\tNone\tNone\tNone\tNone\tNone\tNone\tNone\tNone\tNo_consensus" >> $1_abricate.csv	
+	printf "$1.fasta\t$1_No_consensus\tNone\tNone\tNone\tNone\tNone\tNone\tNone\tNone\tNone\tNone\tNone\tNone\tNo_consensus" >> $1_abricate.csv	
 fi
 
 # Convert the consensus sequence file to a tab-separated format and save it as <SampleName>.tsv

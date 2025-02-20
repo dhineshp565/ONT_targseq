@@ -1,13 +1,13 @@
 # ONT_targseq
 Pipeline for reference based consensus generation and typing for targeted amplicon sequencing using Oxford nanopore sequencing
 
-Requires input directory with sub-directories with fastq files, reference sequence (fasta) and primer ned file with primer coordinates
+Requires input directory with sub-directories with fastq files, reference sequence (fasta) and primer bed file with primer coordinates
 Outputs consensus sequences,kraken,krona and multiqc report if any reads are mapped to reference
 conda or docker needs to be installed
 
 Usage:
 ```
-nextflow run main.nf --input path_to_input --out_dir Results --kraken_db path_to_kraken_database
+nextflow run main.nf --input path_to_input --out_dir Results --kraken_db path_to_kraken_database --reference path_to_reference.fasta
 ```
 
 ```
@@ -15,9 +15,12 @@ Parameters:
 
 --input      Path to input directory
 --out_dir    Output directory
+--reference  Path to fasta file with reference sequences
 --kraken_db  Path to kraken database 
 optional
---trim_barcodes barcode and adapter trimming using porechop
+--read_count_threshold  An interger denoting read depth. Default: 10
+--trim_barcodes         barcode and adapter trimming using porechop
+--medaka_model         Select basecalling model for polishing consensus sequence. Default mode:'r1041_e82_400bps_sup_g615'
 
 ```
 ## Dependencies

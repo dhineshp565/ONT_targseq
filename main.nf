@@ -101,7 +101,7 @@ process splitbam {
 	
 	script:
 	"""
-	splitbam.sh ${SampleName} ${SamplePath} ${primerbed}
+	splitbam.sh ${SampleName} ${SamplePath} ${primerbed} ${params.read_count_threshold}
 
 	"""
 }
@@ -300,7 +300,7 @@ workflow {
 	data=Channel
 	.fromPath(params.input)
 	merge_fastq(make_csv(data).splitCsv(header:true).map { row-> tuple(row.SampleName,row.SamplePath)})
-	reference=file("${baseDir}/reference.fasta")
+	reference=file(params.reference)
 	primerbed=file("${baseDir}/primer.bed")
 	software_version_file=file("${baseDir}/software_version.tsv")
 	//trim barcodes and adapter sequences

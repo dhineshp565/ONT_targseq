@@ -194,7 +194,7 @@ process make_report {
 	path(abricate)
 	path(rmdfile)
 	output:
-	path("*.html")
+	path("targseq*.html")
 	script:
 	"""
 	

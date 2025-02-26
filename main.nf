@@ -115,7 +115,7 @@ process medaka {
 	val (medaka_model)
 	output:
 	tuple val(SampleName),path("${SampleName}_medaka_consensus.fasta"),emit:consensus
-	path("${SampleName}_medaka_consensus.fasta"),emit: cons_only
+	path("${SampleName}_medaka_consensus.fasta"),emit:cons_only
 	script:
 	"""
 	
@@ -351,7 +351,7 @@ workflow {
 	multiqc(stats.mix(idxstats).collect())
 	dbdir=file("${baseDir}/targseq")
 	
-	abricate(splitbam.out.consensus,dbdir)
+	abricate(medaka.out.consensus,dbdir)
 	make_LIMSfile(abricate.out.withseq.collect(),software_version_file)
 	//tax=("${baseDir}/taxdb")
 	//blast_cons(splitbam.out.consensus,tax,db1)
@@ -360,7 +360,7 @@ workflow {
 	//generate report
 	rmd_file=file("${baseDir}/targseq.Rmd")
 	if (params.kraken_db){
-		make_report(make_csv.out,krona_kraken.out.raw,splitbam.out.mapped.collect(),splitbam.out.cons_only.collect(),abricate.out.abricate.collect(),rmd_file)
+		make_report(make_csv.out,krona_kraken.out.raw,splitbam.out.mapped.collect(),medaka.out.cons_only.collect(),abricate.out.abricate.collect(),rmd_file)
 	}
 	
 	

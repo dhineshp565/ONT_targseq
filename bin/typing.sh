@@ -12,7 +12,7 @@
 abricate --datadir $3 --db targseq -minid 60  -mincov 60 --quiet $2 1> $1_abricate.csv
 
 # Replace '_consensus' in the output CSV file with an empty string
-sed -i "s/_consensus//g" "$1_abricate.csv"
+sed -i -e "s/_consensus//g" -e "s/_medaka//g" "$1_abricate.csv"
 
 # Check if the output CSV file has less than 2 lines, if so, append a line indicating no consensus and none for all other fields
 if [[ $(wc -l < "$1_abricate.csv") -lt 2 ]]

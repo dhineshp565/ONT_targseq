@@ -37,14 +37,7 @@
                     "description": "Path to output files",
                     "format": "directory-path",
                     "fa_icon": "fas fa-folder-open"
-                },
-                "reference": {
-                    "type": "string",
-                    "format": "file-path",
-                    "exists": true,
-                    "description": "Path to fasta file with reference sequences"
                 }
-
             }
         },
         "optional": {
@@ -53,7 +46,12 @@
             "description": "",
             "default": "",
             "properties": {
-                
+                "reference": {
+                    "type": "string",
+                    "format": "file-path",
+                    "exists": true,
+                    "description": "Path to fasta file with reference sequences"
+                },
                 "read_count_threshold": {
                   "type": "integer",
                   "default": 10,

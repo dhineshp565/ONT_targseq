@@ -26,7 +26,7 @@
                 },
                 "kraken_db": {
                     "type": "string",
-                    "default": "data/referenceDB/kraken/k2_pluspf_08gb_20230605",
+                    "default": "/data/referenceDB/kraken/k2_pluspf_08gb_20230605",
                     "format": "directory-path",
                     "fa_icon": "fas fa-database",
                     "description": "Path to kraken2 database"

@@ -42,8 +42,7 @@
                     "type": "string",
                     "format": "file-path",
                     "exists": true,
-                    "description": "Path to fasta file with reference sequences",
-                    "default": "reference.fasta"
+                    "description": "Path to fasta file with reference sequences"
                 }
 
             }

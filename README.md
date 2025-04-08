@@ -2,7 +2,7 @@
 Pipeline for reference based consensus generation and typing for targeted amplicon sequencing using Oxford nanopore sequencing
 
 Requires input directory with sub-directories with fastq files, reference sequence (fasta) and primer bed file with primer coordinates
-Outputs consensus sequences,kraken,krona and multiqc report if any reads are mapped to reference
+Outputs consensus sequences, kraken, krona and multiqc report.
 conda or docker needs to be installed
 
 Usage:

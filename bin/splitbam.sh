@@ -36,8 +36,10 @@ then
 			# change fasta header with sample and amplicon names
 			sed -i "s/>.*/>$1_${amp}_consensus/" $1_${amp}.fasta
 	done < "$1_mappedreads.txt"
-		# merge consensus from all amplicons
-		cat $1_*.fasta > $1_consensus.fasta
+	# merge consensus from all amplicons
+	cat $1_*.fasta > $1_cons.fasta
+	# convert multiline fasta to single line fasta
+	awk '/^>/ {if (seq) print seq; print;seq =""} /^[^>]/{seq=seq$0} END {print seq}' $1_cons.fasta > $1_consensus.fasta
 		
 # handle empty consensus. when there are no mapped reads.add sequence header
 else

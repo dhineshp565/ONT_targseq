@@ -192,14 +192,19 @@ process make_report {
 	path(mappedreads)
 	path(cons_only)
 	path(abricate)
-	path(rmdfile)
+	path(blast_formatted)
+	path(png)
+	path(rmdfilewtree)
+	path(rmdfilewotree)
 	output:
-	path("targseq*.html")
+	path("ONT_targseq*.html")
 	script:
 	"""
 	
 	cp ${csv} samples.csv
 	cp ${krona_reports_raw} rawreads.html
+	cp ${rmdfilewtree} report_wtree.Rmd
+	cp ${rmdfilewotree} report_wotree.Rmd
 	# handle empty mapped reads files
 	for i in *mappedreads.txt
 	do
@@ -210,12 +215,26 @@ process make_report {
 	 	fi
 	done
 	
+	# Identify tree PNG if present
+    TREE_PNG=\$(ls ${png} | grep iqtree.png || true)
 
 
-	cp ${rmdfile} report.Rmd
+    if [[ -n "\$TREE_PNG" ]]; then
+	  # If tree PNG exists, render with tree
+		for file in *iqtree.png; do
+			# Extract the file name without the path
+				filename=\$(basename "\$file")
+			# Copy the tree PNG to a known location
+				cp \$file tree.png
+				Rscript -e 'rmarkdown::render(input="report_wtree.Rmd", params=list(csv="${csv}", png="tree.png", krona="rawreads.html"), output_file = paste0("ONT_targseq_results_report_",format(Sys.time(), "%Y-%m-%d_%H-%M-%S"),".html"))'
+		done
+   
+   # render without tree
+    else
+      Rscript -e 'rmarkdown::render(input="report_wotree.Rmd", params=list(csv="${csv}", krona="rawreads.html"), output_file = paste0("ONT_targseq_results_report_", Sys.Date(),"%Y-%m-%d_%H-%M-%S"), ".html"))'
+    fi
 	
-	Rscript -e 'rmarkdown::render(input="report.Rmd", params=list(csv="samples.csv", krona="rawreads.html"), output_file = paste0("targseq_results_report_", Sys.Date(), "_", format(Sys.time(), "%H-%M-%S"), ".html"))'
-
+	
 	"""
 
 }
@@ -453,13 +472,15 @@ workflow {
 	mafft(splitbam.out.cons_only.collect(),refdir)
 	iqtree(mafft.out.collect())
 	ggtree(iqtree.out.collect())
-	//orfipy(medaka.out.consensus)
+	orfipy(medaka.out.consensus)
 	
 	//generate report
-	rmd_file=file("${baseDir}/targseq.Rmd")
-	if (params.kraken_db){
-		make_report(make_csv.out,krona_kraken.out.raw,splitbam.out.mapped.collect(),splitbam.out.cons_only.collect(),abricate.out.abricate.collect(),rmd_file)
-	}
+	
+	rmd_filewotree=file("${baseDir}/targseq_withouttree.Rmd")
+	rmd_filewtree=file("${baseDir}/targseqwithtree.Rmd")
+	
+	make_report(make_csv.out,krona_kraken.out.raw,splitbam.out.mapped.collect(),splitbam.out.cons_only.collect(),abricate.out.abricate.collect(),blast_cons.out.blast_formatted.collect(),ggtree.out.png,rmd_filewtree,rmd_filewotree)
+	
 	
 	
 	

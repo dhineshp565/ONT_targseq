@@ -1,11 +1,12 @@
 ---
-title: "Sanger-Targeted amplicon sequencing results report"
-author: "Generated using [sanger_targseq](https://github.com/dhineshp565/sanger_targseq) pipeline"
+title: "Targeted amplicon sequencing results report"
+author: "Generated using [ONT_targseq](https://github.com/dhineshp565/ONT_targseq) pipeline"
 date: "`r Sys.Date()`"
 output: html_document
 params:
   csv: ""
   png: ""
+  krona: ""
 ---
 
 ```{r setup, include=FALSE}
@@ -33,6 +34,13 @@ sampleid <- samplelist[,c(1)]
 for (i in sampleid){
   cat("####", i, "\n")
   #use mappedreads.txt and display column 1 and 3
+  mapped_reads <- (paste(i,"_mappedreads.txt",sep=""))
+  df <- read.csv(mapped_reads,header = TRUE,sep=" ")
+  mapped_stat<-df[,c(1,3)]
+  colnames (mapped_stat) <- c("AMPLICON","MAPPED_READS")
+  print(knitr::kable(mapped_stat,align="ll",caption = "No. of mapped reads. Generated using [minimap2](https://github.com/lh3/minimap2) and [samtools](https://github.com/samtools/samtools)"))
+
+  cat('\n\n<!-- -->\n\n')
   
   # display abricate results
   abricate_ids <- (paste(i,"_abricate.csv",sep=""))
@@ -82,7 +90,18 @@ Multiple sequence alignment and phylogenetic tree generation using [MAFFT](https
 knitr::include_graphics(params$png)
 ```
 
+<br>
 
+## Taxonomic classification of raw reads using [Kraken2](https://ccb.jhu.edu/software/kraken2/)
+
+
+```{r, echo=FALSE}
+library("htmltools")
+htmltools::tags$iframe(
+  src = base64enc::dataURI(file= params$krona, mime="text/html; charset=UTF-8"),
+  style="border:10; position:relative; top:0; left:; right::; bottom:; width:100%; height:800px"
+)
+```
 <br>
 
 

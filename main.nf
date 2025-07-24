@@ -458,7 +458,7 @@ process bedtools {
 }
 //igv reports from bedgraph
 process igvreports {
-	publishDir "${params.out_dir}/igvreports/"
+	publishDir "${params.out_dir}/igvreports/", mode: "copy"
 	input:
 	path(csv)
 	path(reference)

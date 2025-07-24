@@ -98,7 +98,10 @@ process splitbam {
 	path("${SampleName}_consensus.fasta"),emit:(cons_only)
 	path("${SampleName}_unfilt_stats.txt"),emit:unfilt_stats
 	path("${SampleName}_unfilt_idxstats.csv"),emit:unfilt_idx
+	tuple val(SampleName),path ("${SampleName}_amplicons.txt"),emit:amplicons
+	path ("${SampleName}_*.bam"),emit:target_bam
 	
+
 	script:
 	"""
 	splitbam.sh ${SampleName} ${SamplePath} ${primerbed} ${params.read_count_threshold}
@@ -408,6 +411,74 @@ process ggtree {
     """
 }
 
+process extract_mapped_ref {
+	publishDir "${params.out_dir}/mapped_ref"
+	input:
+	tuple val(SampleName), path(amplicontxtfile)
+	path (reference)
+	output:
+	val(SampleName)
+	path("${SampleName}_mapped_ref.fasta"), emit:mapped_fasta
+	script:
+	"""
+	seqkit grep -f ${amplicontxtfile} ${reference} > ${SampleName}_mapped_ref.fasta
+	"""
+}
+
+//Generate fai and bed from mapped reference
+process mapped_ref_bed {
+	publishDir "${params.out_dir}/mapped_ref_bed"	
+	input:
+	val(SampleName)
+	path (mapped_fasta)
+	output:
+	
+	path ("${SampleName}_mapped.bed"), emit:mapped_bed
+	script:
+	"""
+	samtools faidx ${SampleName}_mapped_ref.fasta > ${SampleName}_mapped_ref.fasta.fai
+    awk 'BEGIN {FS=OFS="\t"}; {print \$1,0,\$2}' "${SampleName}_mapped_ref.fasta.fai" > ${SampleName}_mapped.bed
+	"""
+}
+// generating bedgraph files from alignments
+process bedtools {
+	publishDir "${params.out_dir}/bedtools/"
+	input:
+	tuple val(SampleName), path(amplicontxtfile)
+	path (target_bam)
+	
+	output:
+	
+	path ("${SampleName}*.bedgraph")
+	script:
+	"""
+	while read lines;do bedtools genomecov -ibam ${SampleName}_\$lines.bam -bga > ${SampleName}_\${lines}.bedgraph;done < ${amplicontxtfile}
+	"""
+
+}
+//igv reports from bedgraph
+process igvreports {
+	publishDir "${params.out_dir}/igvreports/"
+	input:
+	path(csv)
+	path(reference)
+    path(bed)
+	path(bedgraph)
+	output:
+	path{"*.html"}
+	script:
+	"""
+
+	
+	tail -n +2 ${csv} | awk -F',' '{print \$1}' | while read sample; do
+
+	create_report \${sample}_mapped.bed \${sample}_mapped_ref.fasta --tracks \${sample}_*.bedgraph --output \${sample}_igv.html
+
+	done
+	"""
+}
+
+		
 workflow {
 	data=Channel
 	.fromPath(params.input)
@@ -481,9 +552,10 @@ workflow {
 	
 	make_report(make_csv.out,krona_kraken.out.raw,splitbam.out.mapped.collect(),splitbam.out.cons_only.collect(),abricate.out.abricate.collect(),blast_cons.out.blast_formatted.collect(),ggtree.out.png,rmd_filewtree,rmd_filewotree)
 	
-	
-	
-	
-	
+	bedtools(splitbam.out.amplicons,splitbam.out.target_bam.collect())
+	extract_mapped_ref(splitbam.out.amplicons,reference)
+	mapped_ref_bed(extract_mapped_ref.out)
+	igvreports(make_csv.out,extract_mapped_ref.out.mapped_fasta.collect(),mapped_ref_bed.out.collect(),bedtools.out.collect())
+
 }
 

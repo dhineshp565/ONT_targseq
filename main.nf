@@ -234,7 +234,7 @@ process make_report {
    
    # render without tree
     else
-      Rscript -e 'rmarkdown::render(input="report_wotree.Rmd", params=list(csv="${csv}", krona="rawreads.html"), output_file = paste0("ONT_targseq_results_report_", Sys.Date(),"%Y-%m-%d_%H-%M-%S"), ".html"))'
+      Rscript -e 'rmarkdown::render(input="report_wotree.Rmd", params=list(csv="${csv}", krona="rawreads.html"), output_file = paste0("ONT_targseq_results_report_", format(Sys.time(), "%Y-%m-%d_%H-%M-%S"), ".html"))'
     fi
 	
 	

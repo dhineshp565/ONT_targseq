@@ -12,7 +12,7 @@ samtools stats "unfilt_$1.bam" > $1_unfilt_stats.txt
 samtools index "unfilt_$1.bam" > $1_unfilt.bai
 samtools idxstats "unfilt_$1.bam" > $1_unfilt_idxstats.csv
 #generate a  sorted bam file with primary alignments
-samtools view -b -h -F 0x900 -q 20 $2|samtools sort > $1.bam	
+samtools view -b -h -F 0x900 -q 10 $2|samtools sort > $1.bam	
 samtools stats "$1.bam" > $1_stats.txt
 
 #index sorted bam file and generate read counts for each amplicon
@@ -21,7 +21,7 @@ samtools idxstats "$1.bam" > $1_idxstats.txt
 threshold=$4
 awk -v var="$threshold" '{if ($3 >= var) print $1, $2, $3}' "${1}_idxstats.txt" > "${1}_mappedreads.txt"
 # filter mapped reads to get only amplicon names and this is used for igvreport generation
-awk '{if ($3!=0) print $1}' ${1}_mappedreads.txt > ${1}_amplicons.txt
+#awk '{if ($3!=0) print $1}' ${1}_mappedreads.txt > ${1}_amplicons.txt
 
 
 #conditional for empty mapped reads.txt file
@@ -47,6 +47,9 @@ then
 # handle empty consensus. when there are no mapped reads.add sequence header
 else
 		echo -e ">$1 No consensus" > $1_consensus.fasta
+		echo -e "No reads found" >> $1_consensus.fasta
+		
+		echo "NA NA NA" >> "$1_mappedreads.txt"
 		
 
 fi

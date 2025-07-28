@@ -98,8 +98,8 @@ process splitbam {
 	path("${SampleName}_consensus.fasta"),emit:(cons_only)
 	path("${SampleName}_unfilt_stats.txt"),emit:unfilt_stats
 	path("${SampleName}_unfilt_idxstats.csv"),emit:unfilt_idx
-	tuple val(SampleName),path ("${SampleName}_amplicons.txt"),emit:amplicons
-	path ("${SampleName}_*.bam"),emit:target_bam
+	// tuple val(SampleName),path ("${SampleName}_amplicons.txt"),emit:amplicons
+	tuple val(SampleName),path ("${SampleName}.bam"),emit:target_bam
 	
 
 	script:
@@ -188,57 +188,30 @@ process krona_kraken {
 process make_report {
 	publishDir "${params.out_dir}/",mode:"copy"
 	
-	label "low"
+	label "medium"
 	input:
 	path(csv)
-	path(krona_reports_raw)
+	path(krona)
 	path(mappedreads)
 	path(cons_only)
 	path(abricate)
 	path(blast_formatted)
 	path(png)
-	path(rmdfilewtree)
-	path(rmdfilewotree)
+	path(rmdfile)
+	
 	output:
+	
 	path("ONT_targseq*.html")
 	script:
 	"""
 	
-	cp ${csv} samples.csv
-	cp ${krona_reports_raw} rawreads.html
-	cp ${rmdfilewtree} report_wtree.Rmd
-	cp ${rmdfilewotree} report_wotree.Rmd
-	# handle empty mapped reads files
-	for i in *mappedreads.txt
-	do
-	 	if [ \$(wc -l < "\${i}" ) -eq 0 ]
-		 then
-	 		echo "Amplicon_Name Size Reads" >> \${i}
-			echo "NA NA NA" >> \${i}
-	 	fi
-	done
+	cp ${rmdfile} rmdfile.Rmd
 	
-	# Identify tree PNG if present
-    TREE_PNG=\$(ls ${png} | grep iqtree.png || true)
+
+	Rscript -e "rmarkdown::render(input= 'rmdfile.Rmd', params=list(csv= '${csv}', krona= '${krona}', png='*.png'), output_file=paste0('ONT_targseq_results_report_',format(Sys.time(), '%Y-%m-%d_%H-%M-%S'),'.html'))"
 
 
-    if [[ -n "\$TREE_PNG" ]]; then
-	  # If tree PNG exists, render with tree
-		for file in *iqtree.png; do
-			# Extract the file name without the path
-				filename=\$(basename "\$file")
-			# Copy the tree PNG to a known location
-				cp \$file tree.png
-				Rscript -e 'rmarkdown::render(input="report_wtree.Rmd", params=list(csv="${csv}", png="tree.png", krona="rawreads.html"), output_file = paste0("ONT_targseq_results_report_",format(Sys.time(), "%Y-%m-%d_%H-%M-%S"),".html"))'
-		done
-   
-   # render without tree
-    else
-      Rscript -e 'rmarkdown::render(input="report_wotree.Rmd", params=list(csv="${csv}", krona="rawreads.html"), output_file = paste0("ONT_targseq_results_report_", format(Sys.time(), "%Y-%m-%d_%H-%M-%S"), ".html"))'
-    fi
-	
-	
-	"""
+    """
 
 }
 
@@ -429,30 +402,25 @@ process extract_mapped_ref {
 process mapped_ref_bed {
 	publishDir "${params.out_dir}/mapped_ref_bed"	
 	input:
-	val(SampleName)
-	path (mapped_fasta)
+	path (reference)
 	output:
-	
-	path ("${SampleName}_mapped.bed"), emit:mapped_bed
+	path ("*.bed")
 	script:
 	"""
-	samtools faidx ${SampleName}_mapped_ref.fasta > ${SampleName}_mapped_ref.fasta.fai
-    awk 'BEGIN {FS=OFS="\t"}; {print \$1,0,\$2}' "${SampleName}_mapped_ref.fasta.fai" > ${SampleName}_mapped.bed
+	samtools faidx ${reference} > targseq_reference.fasta.fai
+    awk 'BEGIN {FS=OFS="\t"}; {print \$1,0,\$2}' "targseq_reference.fasta.fai" > targseq_reference.bed
 	"""
 }
 // generating bedgraph files from alignments
 process bedtools {
 	publishDir "${params.out_dir}/bedtools/"
 	input:
-	tuple val(SampleName), path(amplicontxtfile)
-	path (target_bam)
-	
+	tuple val(SampleName), path (bam)
 	output:
-	
 	path ("${SampleName}*.bedgraph")
 	script:
 	"""
-	while read lines;do bedtools genomecov -ibam ${SampleName}_\$lines.bam -bga > ${SampleName}_\${lines}.bedgraph;done < ${amplicontxtfile}
+	bedtools genomecov -ibam ${SampleName}.bam -bga > ${SampleName}.bedgraph
 	"""
 
 }
@@ -469,12 +437,8 @@ process igvreports {
 	script:
 	"""
 
-	
-	tail -n +2 ${csv} | awk -F',' '{print \$1}' | while read sample; do
+	create_report ${bed} ${reference} --tracks *.bedgraph --output igv_coverage.html
 
-	create_report \${sample}_mapped.bed \${sample}_mapped_ref.fasta --tracks \${sample}_*.bedgraph --output \${sample}_igv.html
-
-	done
 	"""
 }
 
@@ -546,16 +510,16 @@ workflow {
 	orfipy(medaka.out.consensus)
 	
 	//generate report
+
+
+	rmd_file=file("${baseDir}/targseq_rmdfile_with_tree.Rmd")
+
+	make_report(make_csv.out,krona_kraken.out.raw,splitbam.out.mapped.collect(),splitbam.out.cons_only.collect(),abricate.out.abricate.collect(),blast_cons.out.blast_formatted.collect(),ggtree.out.png,rmd_file)
 	
-	rmd_filewotree=file("${baseDir}/targseq_withouttree.Rmd")
-	rmd_filewtree=file("${baseDir}/targseqwithtree.Rmd")
-	
-	make_report(make_csv.out,krona_kraken.out.raw,splitbam.out.mapped.collect(),splitbam.out.cons_only.collect(),abricate.out.abricate.collect(),blast_cons.out.blast_formatted.collect(),ggtree.out.png,rmd_filewtree,rmd_filewotree)
-	
-	bedtools(splitbam.out.amplicons,splitbam.out.target_bam.collect())
-	extract_mapped_ref(splitbam.out.amplicons,reference)
-	mapped_ref_bed(extract_mapped_ref.out)
-	igvreports(make_csv.out,extract_mapped_ref.out.mapped_fasta.collect(),mapped_ref_bed.out.collect(),bedtools.out.collect())
+	bedtools(splitbam.out.target_bam)
+	// extract_mapped_ref(splitbam.out.amplicons,reference)
+	mapped_ref_bed(reference)
+	igvreports(make_csv.out,reference,mapped_ref_bed.out,bedtools.out.collect())
 
 }
 

@@ -28,7 +28,7 @@ p <- ggtree(tree, layout='rectangular', size=0.2) %<+% tip_df +
     theme(plot.caption = element_text(hjust = 0.5))              # Center caption
 
 # Construct output file name based on input file
-out_file <- paste0("tree_", tools::file_path_sans_ext(basename(treefile)), ".png")
+out_file <- paste0(tools::file_path_sans_ext(basename(treefile)), ".png")
 
 # Save the plot to a PNG file
 ggsave(out_file, p, width = 15, height = 10, units = "cm", dpi = 300)

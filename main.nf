@@ -198,6 +198,8 @@ process make_report {
 	path(blast_formatted)
 	path(png)
 	path(rmdfile)
+	path(igv)
+	path (orf)
 	
 	output:
 	
@@ -208,8 +210,9 @@ process make_report {
 	cp ${rmdfile} rmdfile.Rmd
 	
 
-	Rscript -e "rmarkdown::render(input= 'rmdfile.Rmd', params=list(csv= '${csv}', krona= '${krona}', png='*.png'), output_file=paste0('ONT_targseq_results_report_',format(Sys.time(), '%Y-%m-%d_%H-%M-%S'),'.html'))"
+	Rscript -e "rmarkdown::render(input= 'rmdfile.Rmd', params=list(csv= '${csv}', krona= '${krona}', png='*.png', igv='${igv}'), output_file=paste0('ONT_targseq_results_report_',format(Sys.time(), '%Y-%m-%d_%H-%M-%S'),'.html'))"
 
+	
 
     """
 
@@ -307,24 +310,24 @@ process make_LIMSfile {
 
 	"""
 }
-
-
 process mafft {
-    publishDir "${params.out_dir}/mafft/", mode: "copy"
-    label "low"
-
-    input:
-    path (consensus)
+	publishDir "${params.out_dir}/casefiles/",mode:"copy"
+	label "low"
+	input:
+	path (csv)
+	path (consensus)
     path (reference_sequences)
+	output:
+	path("*_msa.fasta")
+	script:
+	"""
+	mafft.sh ${csv} ${reference_sequences}
+	
+	"""
 
-    output:
-    path "*_msa.fasta"
-
-    script:
-    """
-	mafft.sh ${reference_sequences}
-    """
 }
+
+
 // Process to run IQ-TREE for phylogenetic analysis
 // This process takes multiple MSA files and runs IQ-TREE on each of them
 process iqtree {
@@ -351,7 +354,7 @@ process iqtree {
 
 		else
 			# run iqtree2 with MFP model selection and 1000 bootstrap replicates
-			iqtree2 -s "\${file}" -m MFP -bb 1000 -nt AUTO -pre "\${prefix}_iqtree"
+			iqtree2 -s "\${file}" -m MFP -bb 1000 -nt AUTO -pre "\${prefix}"
 		fi
 	done
     """
@@ -504,22 +507,25 @@ workflow {
 	blast_cons(splitbam.out.consensus,params.blastdb_path,params.blastdb_name)
 
 	refdir="${baseDir}/reference_sequences"
-	mafft(splitbam.out.cons_only.collect(),refdir)
+	mafft(make_csv.out,splitbam.out.cons_only.collect(),refdir)
 	iqtree(mafft.out.collect())
 	ggtree(iqtree.out.collect())
-	orfipy(medaka.out.consensus)
+	orfipy(splitbam.out.consensus)
 	
 	//generate report
 
 
-	rmd_file=file("${baseDir}/targseq_rmdfile_with_tree.Rmd")
-
-	make_report(make_csv.out,krona_kraken.out.raw,splitbam.out.mapped.collect(),splitbam.out.cons_only.collect(),abricate.out.abricate.collect(),blast_cons.out.blast_formatted.collect(),ggtree.out.png,rmd_file)
 	
 	bedtools(splitbam.out.target_bam)
 	// extract_mapped_ref(splitbam.out.amplicons,reference)
 	mapped_ref_bed(reference)
 	igvreports(make_csv.out,reference,mapped_ref_bed.out,bedtools.out.collect())
+
+
+	rmd_file=file("${baseDir}/targseq_rmdfile.Rmd")
+
+	make_report(make_csv.out,krona_kraken.out.raw,splitbam.out.mapped.collect(),splitbam.out.cons_only.collect(),abricate.out.abricate.collect(),blast_cons.out.blast_formatted.collect(),ggtree.out.png,rmd_file,igvreports.out,orfipy.out.collect())
+	
 
 }
 

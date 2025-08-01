@@ -1,22 +1,26 @@
 # ONT_targseq
-Pipeline for reference based consensus generation and typing for targeted amplicon sequencing using Oxford nanopore sequencing
+Pipeline for analysing targeted amplicon sequencing using Oxford nanopore sequencing
 
-Requires input directory with sub-directories with fastq file  and a reference sequence (fasta)
-Outputs consensus sequences, kraken, krona and multiqc report.
-conda or docker needs to be installed
+Requires input directory with sub-directories with fastq file, reference sequence (fasta), kraken2 database and blast database
+Outputs consensus sequences, kraken, krona, igv report and multiqc report
+
+
 
 Usage:
 ```
-nextflow run main.nf --input path_to_input --out_dir Results --kraken_db path_to_kraken_database --reference path_to_reference.fasta
+nextflow run main.nf --input path_to_input --out_dir Results --kraken_db path_to_kraken_database --reference path_to_reference.fasta --blastdb_path /path/to/blastdb/nt --blastdb_name nt
 ```
 
 ```
 Parameters:
 
---input      Path to input directory
---out_dir    Output directory
---reference  Path to fasta file with reference sequences
---kraken_db  Path to kraken database 
+--input        Path to input directory
+--out_dir      Output directory
+--reference    Path to fasta file with reference sequences
+--kraken_db    Path to kraken database
+--blastdv_path Path to blast database
+--blastdb_name A string denoting the name of the blastdb
+
 optional
 --read_count_threshold  An interger denoting read depth. Default: 10
 --trim_barcodes         barcode and adapter trimming using porechop
@@ -36,3 +40,9 @@ optional
 * krona:2.7.1(Ondov, B.D., Bergman, N.H. & Phillippy, A.M. Interactive metagenomic visualization in a Web browser. BMC Bioinformatics 12, 385 (2011). https://doi.org/10.1186/1471-2105-12-385)
 * abricate (https://github.com/tseemann/abricate)
 * rmarkdown (https://rmarkdown.rstudio.com/)
+* bedtools (https://bedtools.readthedocs.io/en/latest/)
+* igvreports (https://github.com/igvteam/igv-reports)
+* Blast+ (https://doi.org/10.1186/1471-2105-10-421)
+* mafft (https://mafft.cbrc.jp/alignment/server/index.html)
+* iqtree (https://iqtree.github.io/)
+* orfipy (https://github.com/urmi-21/orfipy)

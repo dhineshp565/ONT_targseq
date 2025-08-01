@@ -83,6 +83,7 @@
                     "type": "string",
                     "default": "r1041_e82_400bps_sup_g615",
                     "enum": [
+                        "r1041_e82_400bps_sup_g615",
                         "r1041_e82_400bps_hac_g615",
                         "r941_e81_hac_g514"
                     ],

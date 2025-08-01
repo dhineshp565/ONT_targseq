@@ -18,7 +18,7 @@ Parameters:
 --out_dir      Output directory
 --reference    Path to fasta file with reference sequences
 --kraken_db    Path to kraken database
---blastdv_path Path to blast database
+--blastdb_path Path to blast database
 --blastdb_name A string denoting the name of the blastdb
 
 optional

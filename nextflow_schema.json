@@ -2,7 +2,7 @@
     "$schema": "http://json-schema.org/draft-07/schema",
     "$id": "https://raw.githubusercontent.com/ONT_targseq/master/nextflow_schema.json",
     "title": "ONT_targseq pipeline parameters",
-    "description": "Pipeline for generating consensus sequence and typing from targeted amplicon sequencing using Oxford Nanopore Technologies",
+    "description": "Pipeline for targeted amplicon sequencing using Oxford Nanopore Technologies",
     "type": "object",
     "definitions": {
         "input_output_options": {
@@ -12,7 +12,9 @@
             "description": "Define where the pipeline should find input data and save output data.",
             "required": [
                 "input",
-                "kraken_db"
+                "kraken_db",
+                "blastdb_path",
+                "blastdb_name"
             ],
             "properties": {
                 "input": {
@@ -30,6 +32,18 @@
                     "format": "directory-path",
                     "fa_icon": "fas fa-database",
                     "description": "Path to kraken2 database"
+                },
+                 "blastdb_path": {
+                    "type": "string",
+                    "default": "/data/referenceDB/blast/microbe_db",
+                    "format": "directory-path",
+                    "fa_icon": "fas fa-database",
+                    "description": "Path to blast database"
+                },
+                 "blastdb_name": {
+                    "type": "string",
+                    "default": "microbe_db",
+                    "description": "Name of the blast database"
                 },
                 "out_dir": {
                     "type": "string",
@@ -69,7 +83,7 @@
                     "type": "string",
                     "default": "r1041_e82_400bps_sup_g615",
                     "enum": [
-                        "r1041_e82_400bps_sup_g615",
+                        "r1041_e82_400bps_hac_g615",
                         "r941_e81_hac_g514"
                     ],
                     "description": "Select basecalling model for medaka polishing"

@@ -188,7 +188,7 @@ process krona_kraken {
 process make_report {
 	publishDir "${params.out_dir}/",mode:"copy"
 	
-	label "medium"
+	label "high"
 	input:
 	path(csv)
 	path(krona)
@@ -200,7 +200,7 @@ process make_report {
 	path(rmdfile)
 	path(igv)
 	path (orf)
-	path(rmdfile_pdf)
+	path(rmdfile_case)
 	
 	output:
 
@@ -297,7 +297,7 @@ process blast_cons {
 
 
 process orfipy {
-	label "low"
+	label "medium"
 	publishDir "${params.out_dir}/orf",mode:"copy"
 	input:
 	tuple val(SampleName),path("${SampleName}_consensus.fasta")
@@ -562,9 +562,9 @@ workflow {
 
 
 	rmd_file=file("${baseDir}/targseq_rmdfile.Rmd")
-	rmdfile_pdf=file("${baseDir}/targseq_rmdfile_case.Rmd")
+	rmdfile_case=file("${baseDir}/targseq_rmdfile_case.Rmd")
 
-	make_report(make_csv.out,krona_kraken.out.raw,splitbam.out.mapped.collect(),splitbam.out.cons_only.collect(),abricate.out.abricate.collect(),blast_cons.out.blast_formatted.collect(),ggtree.out.png,rmd_file,igvreports.out,orfipy.out.collect(),rmdfile_pdf)
+	make_report(make_csv.out,krona_kraken.out.raw,splitbam.out.mapped.collect(),splitbam.out.cons_only.collect(),abricate.out.abricate.collect(),blast_cons.out.blast_formatted.collect(),ggtree.out.png,rmd_file,igvreports.out,orfipy.out.collect(),rmdfile_case)
 	// htmltopdf(make_report.out.pdf)
 
 }

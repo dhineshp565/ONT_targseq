@@ -27,14 +27,14 @@ library(dplyr)
 }
 ```
 
-### Click dropdown to select sample {.tabset .tabset-dropdown}
+
 ```{r, results='asis',echo=FALSE}
 
 samplelist <- read.csv(params$csv,header=FALSE,sep = ',')
 sampleid <- samplelist[,c(1)]
 
 for (i in sampleid){
-  cat("####", i, "\n")
+  cat("###", i, "\n")
   #use mappedreads.txt and display column 1 and 3
   mapped_reads <- (paste(i,"_mappedreads.txt",sep=""))
   df <- read.csv(mapped_reads,header = TRUE,sep=" ")

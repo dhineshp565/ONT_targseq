@@ -549,7 +549,7 @@ workflow {
 	mafft(make_csv.out,splitbam.out.cons_only.collect(),refdir)
 	iqtree(mafft.out.collect())
 	ggtree(iqtree.out.collect())
-	orfipy(splitbam.out.consensus)
+	orfipy(medaka.out.consensus)
 	
 	//generate report
 

@@ -4,7 +4,7 @@
 
 # Run orfipy to predict ORFs from the consensus sequence ($2)
 # Output DNA sequences to $1_ORF.fasta, minimum ORF length 600, output directory $1_ORF, start codon ATG
-orfipy $2 --dna $1_ORF.fasta --min 600 --outdir $1_ORF --start ATG
+orfipy $2 --dna $1_ORF.fasta --min 600 --outdir $1_ORF --start ATG --include-stop
 
 # Move the generated ORF fasta file to a new filename for further processing
 mv $1_ORF/$1_ORF.fasta $1_ORF_.fasta 

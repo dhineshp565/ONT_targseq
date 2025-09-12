@@ -34,7 +34,7 @@ samplelist <- read.csv(params$csv,header=FALSE,sep = ',')
 sampleid <- samplelist[,c(1)]
 
 for (i in sampleid){
-  cat("###", i, "\n")
+  cat("### ***", i, "***\n")
   #use mappedreads.txt and display column 1 and 3
   mapped_reads <- (paste(i,"_mappedreads.txt",sep=""))
   df <- read.csv(mapped_reads,header = TRUE,sep=" ")
@@ -95,11 +95,19 @@ for (i in sampleid){
 
 
   cat('\n\n<!-- -->\n\n')
+
+  # print orf length
+  seqlen_id <- (paste(i,"_seqlengths.tsv",sep=""))
+  seqlen_raw <- read.csv(seqlen_id, sep="\t", header=FALSE)
+  colnames(seqlen_raw) <- c("SEQUENCE_NAME", "LENGTH")
+  print(knitr::kable(seqlen_raw, align="ll", caption = "Sequence name and length"))
+
+  cat('\n\n<!-- -->\n\n')
  
 
-    gene_list <- abricate_final$GENE
+  gene_list <- abricate_final$GENE
   
-    case_id <- sub("-.*$", "", i) # Extract the case ID from the sample ID
+  case_id <- sub("-.*$", "", i) # Extract the case ID from the sample ID
 
 
   

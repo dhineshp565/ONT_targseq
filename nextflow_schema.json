@@ -70,7 +70,20 @@
                   "type": "integer",
                   "default": 10,
                   "help_text": "Read count threshold - Number of reads to classify sample as positive or negative",
-                  "enum": [1,5,10, 15, 20, 25,30]
+                  "enum": [1,2,3,4,5,6,7,8,9,10, 15, 20, 25,30]
+                },
+                "qscore": {
+                  "type": "integer",
+                  "default": 20,
+                  "help_text": "Raw read quality score (Phred quality score). Only the reads equal to or above quality score will be used for analysis",
+                  "enum": [10, 12, 15, 20, 25,30,35,40]
+                },
+                "consensus_mode": {
+                  "type": "string",
+                  "default": "simple",
+                  "help_text": "Mode of consensus generation: simple for frequency counting and bayesian for Gap5 algorithm ",
+                  "enum": ["simple",
+                            "bayesian"]
                 },
                 "trim_barcodes": {
                     "type": "string",
@@ -78,17 +91,8 @@
                     "enum": [
                         "Yes"
                     ]
-                },
-                "medaka_model": {
-                    "type": "string",
-                    "default": "r1041_e82_400bps_sup_g615",
-                    "enum": [
-                        "r1041_e82_400bps_sup_g615",
-                        "r1041_e82_400bps_hac_g615",
-                        "r941_e81_hac_g514"
-                    ],
-                    "description": "Select basecalling model for medaka polishing"
                 }
+                
             }
         }
     },

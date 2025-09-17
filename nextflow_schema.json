@@ -74,7 +74,7 @@
                 },
                 "qscore": {
                   "type": "integer",
-                  "default": 20,
+                  "default": 10,
                   "description": "Raw read quality score (Phred quality score). Only the reads equal to or above quality score will be used for analysis",
                   "enum": [10, 12, 15, 20, 25,30,35,40]
                 },

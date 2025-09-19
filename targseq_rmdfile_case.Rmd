@@ -25,6 +25,12 @@ library(dplyr)
     color: darkblue;
     font-weight: bold;
 }
+hr {
+  border: none;           
+  height: 4px;            
+  background-color: darkblue;  
+  margin: 20px 0;         
+}
 ```
 
 
@@ -36,20 +42,22 @@ sampleid <- samplelist[,c(1)]
 for (i in sampleid){
   cat("### ***", i, "***\n")
   #use mappedreads.txt and display column 1 and 3
-  mapped_reads <- (paste(i,"_mappedreads.txt",sep=""))
-  df <- read.csv(mapped_reads,header = TRUE,sep=" ")
-  mapped_stat<-df[,c(1,3)]
-  colnames (mapped_stat) <- c("AMPLICON","MAPPED_READS")
-  print(knitr::kable(mapped_stat,align="ll",caption = "No. of mapped reads. Generated using [minimap2](https://github.com/lh3/minimap2) and [samtools](https://github.com/samtools/samtools)"))
+  #mapped_reads <- (paste(i,"_mappedreads.txt",sep=""))
+  #df <- read.csv(mapped_reads,header = TRUE,sep=" ")
+  #mapped_stat<-df[,c(1,3)]
+  #colnames (mapped_stat) <- c("AMPLICON","MAPPED_READS")
+  #print(knitr::kable(mapped_stat,align="ll",caption = "No. of mapped reads. Generated using [minimap2](https://github.com/lh3/minimap2) and [samtools](https://github.com/samtools/samtools)"))
 
   cat('\n\n<!-- -->\n\n')
   
   # display abricate results
   abricate_ids <- (paste(i,"_abricate.csv",sep=""))
   abricate_raw <- read.csv(abricate_ids,header = TRUE,sep = "\t")
-  abricate_final <- abricate_raw[,c(2,6,10,11,12,15)]
-  colnames(abricate_final) <- c("SEQUENCE","GENE","%COVERAGE","%IDENTITY","DATABASE","REFERENCE") 
-  print(knitr::kable(abricate_final,align = "llcccl",caption = "Consensus compared to reference database. Generated using [abricate](https://github.com/tseemann/abricate) and custom database")) 
+  abricate_final <- abricate_raw[,c(2,6,10,11,15)]
+  colnames(abricate_final) <- c("SEQUENCE","GENE","%COVERAGE","%IDENTITY","TYPING RESULT") 
+  results_only <- abricate_raw[,c(2,10,11,15)]
+  colnames(results_only) <- c("SEQUENCE","%COVERAGE","%IDENTITY","TYPING RESULT") 
+  print(knitr::kable(results_only,align = "llll",caption = "Consensus compared to curated reference database. Generated using [abricate](https://github.com/tseemann/abricate) and custom database")) 
    
   
 
@@ -67,13 +75,13 @@ for (i in sampleid){
   # Provide a download link for the encoded FASTA content with file name
   # cat('<a href="data:text/plain;charset=utf-8;base64,', encoded_content, '" download="', file_name, '">Download FASTA file</a>')
 
-  cat('\n\n<!-- -->\n\n')
-  orf_id <- (paste(i,"_ORF.fasta",sep=""))
-  orf_file <- readLines(orf_id)
+  #cat('\n\n<!-- -->\n\n')
+  #orf_id <- (paste(i,"_ORF.fasta",sep=""))
+  #orf_file <- readLines(orf_id)
   # Display the content
-  cat("```\n")
-  cat(orf_file, sep = "\n")
-  cat("\n```\n")
+  #cat("```\n")
+  #cat(orf_file, sep = "\n")
+  #cat("\n```\n")
   # Encode the file content as base64
   #encoded_content <- base64encode(charToRaw(paste(orf_file, collapse = "\n")))
   # Get file name from file path and remove extra underscores
@@ -91,16 +99,16 @@ for (i in sampleid){
   # Sort by %IDENTITY descending, then %COVERAGE descending
   blast_final <- blast_final %>%
   arrange(desc(`LENGTH`), desc(`%IDENTITY`), desc(`%COVERAGE`))
-  print(knitr::kable(blast_final,align = "lccccl",caption = "Consensus compared to NCBI BLAST database. Generated using [BLAST](https://blast.ncbi.nlm.nih.gov/Blast.cgi)"))
+  print(knitr::kable(blast_final,align = "lccccl",caption = "Consensus compared to NCBI REFSEQ database. Generated using [BLAST](https://blast.ncbi.nlm.nih.gov/Blast.cgi)"))
 
 
   cat('\n\n<!-- -->\n\n')
 
   # print orf length
-  seqlen_id <- (paste(i,"_seqlengths.tsv",sep=""))
-  seqlen_raw <- read.csv(seqlen_id, sep="\t", header=FALSE)
-  colnames(seqlen_raw) <- c("SEQUENCE_NAME", "LENGTH")
-  print(knitr::kable(seqlen_raw, align="ll", caption = "Sequence name and length"))
+  # seqlen_id <- (paste(i,"_seqlengths.tsv",sep=""))
+  # seqlen_raw <- read.csv(seqlen_id, sep="\t", header=FALSE)
+  #colnames(seqlen_raw) <- c("SEQUENCE_NAME", "LENGTH")
+  #print(knitr::kable(seqlen_raw, align="ll", caption = "Sequence name and length"))
 
   cat('\n\n<!-- -->\n\n')
  
@@ -140,7 +148,7 @@ for (i in sampleid){
       }
     }
   cat('\n\n<!-- -->\n\n')
-   
+  cat('<hr>\n')
   }
 ```
 

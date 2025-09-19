@@ -47,9 +47,9 @@ for (i in sampleid){
   # display abricate results
   abricate_ids <- (paste(i,"_abricate.csv",sep=""))
   abricate_raw <- read.csv(abricate_ids,header = TRUE,sep = "\t")
-  abricate_final <- abricate_raw[,c(2,6,10,11,12,15)]
-  colnames(abricate_final) <- c("SEQUENCE","GENE","%COVERAGE","%IDENTITY","DATABASE","REFERENCE") 
-  print(knitr::kable(abricate_final,align = "llcccl",caption = "Consensus compared to reference database. Generated using [abricate](https://github.com/tseemann/abricate) and custom database")) 
+  abricate_final <- abricate_raw[,c(2,6,10,11,15)]
+  colnames(abricate_final) <- c("SEQUENCE","GENE","%COVERAGE","%IDENTITY","RESULTS") 
+  print(knitr::kable(abricate_final,align = "llcccl",caption = "Consensus compared to curated reference database. Generated using [abricate](https://github.com/tseemann/abricate) and custom database")) 
    
   
 

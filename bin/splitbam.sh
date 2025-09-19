@@ -54,6 +54,7 @@ then
 	done < "$1_mappedreads.txt"
 	# merge consensus from all amplicons
 	cat $1_*.fasta > $1_cons.fasta
+	#Ssed -i '/^>/! s/N//g' $1_cons.fasta
 	# convert multiline fasta to single line fasta
 	awk '/^>/ {if (seq) print seq; print;seq =""} /^[^>]/{seq=seq$0} END {print seq}' $1_cons.fasta > $1_consensus.fasta
 		

@@ -18,6 +18,7 @@ for case in $(cat caselist.txt);do cat ${case}-*.fasta > ${case}_consensus.fasta
 		if grep -q "$virus" ${case}_consensus.fasta; then
 			# extract sequences for the virus and create a new virus only file
 			awk -v v="$virus" '/^>/ {keep = ($0 ~ v)} keep' ${case}_consensus.fasta > "${case}_${virus}_only.fasta"
+			#sed -i '/^>/! s/N//g' "${case}_${virus}_only.fasta" 
 			# concatenate the extracted sequences with the reference sequences
 			cat "${case}_${virus}_only.fasta" $2/${virus}_references.fasta > ${case}_${virus}_unaligned.fasta
 			mafft --auto ${case}_${virus}_unaligned.fasta > ${case}_${virus}_msa.fasta

@@ -89,20 +89,20 @@ for (i in sampleid){
   # Provide a download link for the encoded FASTA content with file name
   # cat('<a href="data:text/plain;charset=utf-8;base64,', encoded_content, '" download="', file_name, '">Download ORF file</a>')
   
-  cat('\n\n<!-- -->\n\n')
+ #cat('\n\n<!-- -->\n\n')
 
   # display blast results
-  blast_ids <- (paste(i,"_report_blast.csv",sep=""))
-  blast_raw <- read.csv(blast_ids,header = TRUE,sep = "\t")
-  blast_final <- blast_raw[,c(1,3,4,5,6,10)]
-  colnames(blast_final) <- c("QUERY_ID","LENGTH","%COVERAGE","%IDENTITY","E_VAL","STITLE")
+  #blast_ids <- (paste(i,"_report_blast.csv",sep=""))
+  #blast_raw <- read.csv(blast_ids,header = TRUE,sep = "\t")
+  #blast_final <- blast_raw[,c(1,3,4,5,6,10)]
+  #colnames(blast_final) <- c("QUERY_ID","LENGTH","%COVERAGE","%IDENTITY","E_VAL","STITLE")
   # Sort by %IDENTITY descending, then %COVERAGE descending
-  blast_final <- blast_final %>%
-  arrange(desc(`LENGTH`), desc(`%IDENTITY`), desc(`%COVERAGE`))
-  print(knitr::kable(blast_final,align = "lccccl",caption = "Consensus compared to NCBI REFSEQ database. Generated using [BLAST](https://blast.ncbi.nlm.nih.gov/Blast.cgi)"))
+  #blast_final <- blast_final %>%
+  #arrange(desc(`LENGTH`), desc(`%IDENTITY`), desc(`%COVERAGE`))
+  #print(knitr::kable(blast_final,align = "lccccl",caption = "Consensus compared to NCBI REFSEQ database. Generated using [BLAST](https://blast.ncbi.nlm.nih.gov/Blast.cgi)"))
 
 
-  cat('\n\n<!-- -->\n\n')
+  #cat('\n\n<!-- -->\n\n')
 
   # print orf length
   # seqlen_id <- (paste(i,"_seqlengths.tsv",sep=""))
